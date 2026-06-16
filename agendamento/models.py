@@ -3,23 +3,52 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import time
+from django.utils.text import slugify
+
+class Tenant(models.Model):
+    nome        = models.CharField(max_length=50)
+    slug        = models.SlugField(max_length=60, unique=True)
+    telefone    = models.CharField(max_length=20)
+    cnpj        = models.CharField(max_length=18, blank=True, default='')
+    email       = models.EmailField()
+    ativo       = models.BooleanField(default=True)
+    criado_em   = models.DateTimeField(auto_now_add=True)
+    # admin do salão (owner)
+    admin       = models.OneToOneField(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='tenant_admin',
+        null=True, blank=True,
+    )
+
+    def __str__(self):
+        return self.nome
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nome)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Salão'
+        verbose_name_plural = 'Salões'
 
 
 class Cliente(models.Model):
-    id_usuario = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        primary_key=True
-    )
-    telefone = models.CharField(max_length=20,)
-    endereco = models.CharField(max_length=60,)
-    bloqueado = models.BooleanField(default=False)
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name='clientes'
+    )  # <-- NOVO
+    id_usuario = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    telefone   = models.CharField(max_length=20)
+    endereco   = models.CharField(max_length=60)
+    bloqueado  = models.BooleanField(default=False)
 
-    def __str__(self):
-        return self.id_usuario.username
 
 
 class Agendamento(models.Model):
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name='agendamentos'
+    )  # <-- NOVO
 
     ORIGEM_ONLINE = 'online'
     ORIGEM_MANUAL = 'manual'
@@ -73,8 +102,8 @@ class Agendamento(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['data', 'horario'],
-                name='unique_agendamento_data_horario'
+                fields=['tenant', 'data', 'horario'],  # tenant entra na constraint
+                name='unique_agendamento_tenant_data_horario'
             )
         ]
 
@@ -149,18 +178,15 @@ class Agendamento(models.Model):
 
 
 class Servico(models.Model):
-    nome = models.CharField(max_length=100)
-    descricao = models.CharField(max_length=200, blank=True)
-    ativo = models.BooleanField(default=True)
-    preco = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name='servicos'
+    )  # <-- NOVO
+    nome          = models.CharField(max_length=100)
+    descricao     = models.CharField(max_length=200, blank=True)
+    ativo         = models.BooleanField(default=True)
+    preco         = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     duracao_minutos = models.PositiveIntegerField(default=60)
-    horario_duplo = models.BooleanField(
-        default=False,
-        verbose_name="Ocupa dois horários consecutivos"
-    )
-
-    def __str__(self):
-        return f"{self.nome} - {self.preco}"
+    horario_duplo = models.BooleanField(default=False)
 
 
 class NotificacaoExclusao(models.Model):
@@ -180,12 +206,14 @@ class NotificacaoExclusao(models.Model):
 
 
 class HorarioBloqueado(models.Model):
-    data = models.DateField()
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name='horarios_bloqueados'
+    )  # <-- NOVO
+    data    = models.DateField()
     horario = models.TimeField(null=True, blank=True)
-    tipo = models.CharField(max_length=10, choices=[
-        ('bloqueio', 'Bloqueio'),
-        ('liberado', 'Liberado')
+    tipo    = models.CharField(max_length=10, choices=[
+        ('bloqueio', 'Bloqueio'), ('liberado', 'Liberado')
     ])
 
     class Meta:
-        unique_together = ['data', 'horario']
+        unique_together = ['tenant', 'data', 'horario']  # tenant na unique

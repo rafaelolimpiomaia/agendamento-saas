@@ -59,7 +59,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'agendamento.middleware.TenantMiddleware',  # <-- ADICIONAR POR ÚLTIMO
 ]
+
 
 ROOT_URLCONF = 'agendamento_project.urls'
 

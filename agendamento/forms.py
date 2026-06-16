@@ -1,8 +1,72 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import Agendamento
+from .models import Agendamento, Tenant
 from datetime import date, time, datetime
+from django.utils.text import slugify
+
+class CadastroSalaoForm(forms.Form):
+    nome_salao = forms.CharField(
+        label='Nome do salão',
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Salão da Maria'})
+    )
+    slug = forms.SlugField(
+        label='Endereço do salão (URL)',
+        max_length=60,
+        help_text='Somente letras minúsculas, números e hífens. Ex: salao-da-maria',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    telefone = forms.CharField(
+        label='Telefone',
+        max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(83) 90000-0000'})
+    )
+    cnpj = forms.CharField(
+        label='CNPJ (opcional)',
+        max_length=18,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    nome_responsavel = forms.CharField(
+        label='Nome do responsável',
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    email = forms.EmailField(
+        label='E-mail',
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+    senha = forms.CharField(
+        label='Senha',
+        min_length=6,
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    confirmar_senha = forms.CharField(
+        label='Confirmar senha',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+
+    def clean_slug(self):
+        slug = self.cleaned_data.get('slug')
+        if Tenant.objects.filter(slug=slug).exists():
+            raise forms.ValidationError('Este endereço já está em uso. Escolha outro.')
+        return slug
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        from django.contrib.auth.models import User
+        if User.objects.filter(username=email).exists():
+            raise forms.ValidationError('Este e-mail já está cadastrado.')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        senha = cleaned_data.get('senha')
+        confirmar = cleaned_data.get('confirmar_senha')
+        if senha and confirmar and senha != confirmar:
+            self.add_error('confirmar_senha', 'As senhas não coincidem.')
+        return cleaned_data
 
 class AgendamentoForm(forms.ModelForm):
     class Meta:
