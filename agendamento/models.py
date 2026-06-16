@@ -36,7 +36,7 @@ class Tenant(models.Model):
 
 class Cliente(models.Model):
     tenant = models.ForeignKey(
-        Tenant, on_delete=models.CASCADE, related_name='clientes'
+        Tenant, on_delete=models.CASCADE, related_name='clientes', null=True
     )  # <-- NOVO
     id_usuario = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     telefone   = models.CharField(max_length=20)
@@ -47,7 +47,7 @@ class Cliente(models.Model):
 
 class Agendamento(models.Model):
     tenant = models.ForeignKey(
-        Tenant, on_delete=models.CASCADE, related_name='agendamentos'
+        Tenant, on_delete=models.CASCADE, related_name='agendamentos', null=True
     )  # <-- NOVO
 
     ORIGEM_ONLINE = 'online'
@@ -179,7 +179,7 @@ class Agendamento(models.Model):
 
 class Servico(models.Model):
     tenant = models.ForeignKey(
-        Tenant, on_delete=models.CASCADE, related_name='servicos'
+        Tenant, on_delete=models.CASCADE, related_name='servicos', null=True
     )  # <-- NOVO
     nome          = models.CharField(max_length=100)
     descricao     = models.CharField(max_length=200, blank=True)
@@ -207,7 +207,7 @@ class NotificacaoExclusao(models.Model):
 
 class HorarioBloqueado(models.Model):
     tenant = models.ForeignKey(
-        Tenant, on_delete=models.CASCADE, related_name='horarios_bloqueados'
+        Tenant, on_delete=models.CASCADE, related_name='horarios_bloqueados', null=True
     )  # <-- NOVO
     data    = models.DateField()
     horario = models.TimeField(null=True, blank=True)
