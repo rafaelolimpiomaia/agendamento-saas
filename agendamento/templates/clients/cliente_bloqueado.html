@@ -79,7 +79,7 @@ body {
         Falha ao processar seu agendamento. Ocorreu uma instabilidade ao processar seu agendamento no momento.
         Por favor, tente novamente mais tarde ou entre em contato com o <strong>suporte</strong> para mais informações.
     </p>
-    <a href="{% url 'suporte' %}" class="back-link">
+    <a href="{% url 'suporte' tenant_slug=tenant_slug %}" class="back-link">
         <i class="bi bi-headset"></i> Falar com suporte
     </a>
 </div>

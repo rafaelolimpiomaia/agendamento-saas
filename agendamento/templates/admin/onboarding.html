@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Configuração Inicial — {{ tenant.nome }}</title>
+</head>
+<body>
+    <h1>Bem-vindo, {{ request.user.first_name }}! 🎉</h1>
+    <p>Seu salão <strong>{{ tenant.nome }}</strong> foi criado com sucesso.</p>
+    <p>Endereço do seu sistema: <strong>/{{ tenant.slug }}/</strong></p>
+
+    <hr>
+    <h2>Próximos passos</h2>
+    <ul>
+        <li><a href="{% url 'criar_servico' tenant_slug=tenant_slug %}">Cadastrar serviços</a></li>
+        <li><a href="{% url 'gerenciar_horarios' tenant_slug=tenant_slug %}">Configurar horários</a></li>
+        <li><a href="{% url 'painel_admin' tenant_slug=tenant_slug %}">Ir para o painel</a></li>
+    </ul>
+</body>
+</html>

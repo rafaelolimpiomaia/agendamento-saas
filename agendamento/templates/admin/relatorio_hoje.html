@@ -193,11 +193,11 @@
             </h2>
 
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                <a href="{% url 'agendamento_manual' %}" class="btn btn-primary btn-back">
+                <a href="{% url 'agendamento_manual' tenant_slug=tenant_slug %}" class="btn btn-primary btn-back">
                     <i class="bi bi-pencil-square"></i>
                     Novo agendamento manual
                 </a>
-                <a href="{% url 'painel_admin' %}" class="btn btn-secondary btn-back">
+                <a href="{% url 'painel_admin' tenant_slug=tenant_slug %}" class="btn btn-secondary btn-back">
                     <i class="bi bi-arrow-left"></i>
                     Voltar
                 </a>
@@ -230,12 +230,12 @@
 
                             {% if ag.status == 'pendente' %}
                                 <div class="status-actions">
-                                    <a href="{% url 'atualizar_status' ag.id 'presente' %}" class="btn btn-presente">
+                                    <a href="{% url 'atualizar_status' ag.id 'presente' tenant_slug=tenant_slug %}" class="btn btn-presente">
                                         <i class="bi bi-check-circle"></i>
                                         Presente
                                     </a>
 
-                                    <a href="{% url 'atualizar_status' ag.id 'ausente' %}" class="btn btn-ausente">
+                                    <a href="{% url 'atualizar_status' ag.id 'ausente' tenant_slug=tenant_slug %}" class="btn btn-ausente">
                                         <i class="bi bi-x-circle"></i>
                                         Ausente
                                     </a>

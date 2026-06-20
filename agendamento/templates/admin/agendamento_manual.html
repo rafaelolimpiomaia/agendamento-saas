@@ -228,7 +228,7 @@ body {
             <h1 class="page-title">
                 <i class="bi bi-pencil-square"></i> Agendamento Manual
             </h1>
-            <a href="{% url 'proximos_agendamentos' %}" class="btn btn-outline-secondary btn-back">
+            <a href="{% url 'proximos_agendamentos' tenant_slug=tenant_slug %}" class="btn btn-outline-secondary btn-back">
                 <i class="bi bi-arrow-left"></i> Voltar
             </a>
         </div>

@@ -221,7 +221,7 @@
                 </div>
 
                 <div class="menu-group">
-                    <a href="/agendar/" class="btn btn-primary menu-btn">
+                    <a href="{% url 'escolher_servico' tenant_slug=tenant_slug %}" class="btn btn-primary menu-btn">
                         <i class="bi bi-calendar-plus"></i>
                         Agendar horário
                     </a>
@@ -268,28 +268,28 @@
                     <div class="row text-center row-cols-2 row-cols-sm-4">
 
                         <div class="col">
-                            <a href="{% url 'perfil' %}" class="text-dark text-decoration-none">
+                            <a href="{% url 'perfil' tenant_slug=tenant_slug %}" class="text-dark text-decoration-none">
                                 <i class="bi bi-person-circle footer-icon"></i>
                                 <small>Perfil</small>
                             </a>
                         </div>
 
                         <div class="col">
-                            <a href="{% url 'sobre' %}" class="text-dark text-decoration-none">
+                            <a href="{% url 'sobre' tenant_slug=tenant_slug %}" class="text-dark text-decoration-none">
                                 <i class="bi bi-info-circle footer-icon"></i>
                                 <small>Sobre</small>
                             </a>
                         </div>
 
                         <div class="col">
-                            <a href="{% url 'listar_agendamentos' %}" class="text-dark text-decoration-none">
+                            <a href="{% url 'listar_agendamentos' tenant_slug=tenant_slug %}" class="text-dark text-decoration-none">
                                 <i class="bi bi-calendar-check footer-icon"></i>
                                 <small>Agendamentos</small>
                             </a>
                         </div>
 
                         <div class="col">
-                            <a href="{% url 'suporte' %}" class="text-dark text-decoration-none">
+                            <a href="{% url 'suporte' tenant_slug=tenant_slug %}" class="text-dark text-decoration-none">
                                 <i class="bi bi-headset footer-icon"></i>
                                 <small>Suporte</small>
                             </a>
@@ -489,7 +489,7 @@
     }
 
     function marcarLida(id, callback) {
-        fetch(`/notificacao/lida/${id}/`, {
+        fetch(`/{{ tenant_slug }}/notificacao/lida/${id}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}',

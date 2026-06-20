@@ -1,9 +1,10 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import Agendamento, Tenant
+from .models import Agendamento, Tenant, Servico
 from datetime import date, time, datetime
 from django.utils.text import slugify
+
 
 class CadastroSalaoForm(forms.Form):
     nome_salao = forms.CharField(
@@ -55,7 +56,6 @@ class CadastroSalaoForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        from django.contrib.auth.models import User
         if User.objects.filter(username=email).exists():
             raise forms.ValidationError('Este e-mail já está cadastrado.')
         return email
@@ -67,6 +67,7 @@ class CadastroSalaoForm(forms.Form):
         if senha and confirmar and senha != confirmar:
             self.add_error('confirmar_senha', 'As senhas não coincidem.')
         return cleaned_data
+
 
 class AgendamentoForm(forms.ModelForm):
     class Meta:
@@ -104,10 +105,8 @@ class AgendamentoForm(forms.ModelForm):
 
     def clean_horario(self):
         horario = self.cleaned_data.get('horario')
-
         if not horario:
             raise forms.ValidationError('Selecione um horário antes de agendar.')
-
         return horario
 
     def clean(self):
@@ -126,14 +125,12 @@ class AgendamentoForm(forms.ModelForm):
             raise forms.ValidationError("Este horário já está ocupado.")
 
         return cleaned_data
-    
+
+
 class IdentificarUsuarioForm(forms.Form):
-    """
-    Etapa 1: identifica o usuário pelo nome cadastrado.
-    """
     nome = forms.CharField(
         label="Nome do usuário",
-        max_length= 100,
+        max_length=100,
         widget=forms.TextInput(attrs={
             "class": "form-control",
             "placeholder": "Digite seu nome",
@@ -145,10 +142,9 @@ class IdentificarUsuarioForm(forms.Form):
         max_length=15,
         widget=forms.TextInput(attrs={"placeholder": "Ex: (83) 90000-0000"})
     )
+
+
 class RedefinirSenhaForm(forms.Form):
-    """
-    Etapa 2: recebe e valida a nova senha do usuário já identificado.
-    """
     nova_senha = forms.CharField(
         label="Nova senha",
         min_length=5,
@@ -164,23 +160,16 @@ class RedefinirSenhaForm(forms.Form):
             "placeholder": "Repita a nova senha",
         })
     )
-    
+
     def clean(self):
         cleaned_data = super().clean()
         nova = cleaned_data.get("nova_senha")
         confirmar = cleaned_data.get("confirmar_senha")
-
-        # Validação: campos vazios já são capturados pelo min_length,
-        # mas verificamos a igualdade só se ambos estiverem presentes.
         if nova and confirmar and nova != confirmar:
-            # erro amigável associado ao campo correto
-            self.add_error(
-                "confirmar_senha",
-                "As senhas não coincidem. Digite novamente."
-            )
-
+            self.add_error("confirmar_senha", "As senhas não coincidem. Digite novamente.")
         return cleaned_data
-    
+
+
 class AgendamentoManualForm(forms.Form):
     """
     Formulário para criação de agendamentos manuais pelo administrador.
@@ -205,7 +194,7 @@ class AgendamentoManualForm(forms.Form):
     )
     servico = forms.ModelChoiceField(
         label='Serviço',
-        queryset=None,
+        queryset=Servico.objects.none(),  # começa vazio, preenchido no __init__
         empty_label='— Selecione um serviço —',
         widget=forms.Select(attrs={'class': 'form-select'}),
     )
@@ -232,10 +221,15 @@ class AgendamentoManualForm(forms.Form):
         }),
     )
 
-    def __init__(self, *args, horarios_disponiveis=None, **kwargs):
+    def __init__(self, *args, **kwargs):
+        tenant = kwargs.pop('tenant', None)
+        horarios_disponiveis = kwargs.pop('horarios_disponiveis', [])
         super().__init__(*args, **kwargs)
-        from .models import Servico as ServicoModel
-        self.fields['servico'].queryset = ServicoModel.objects.filter(ativo=True)
+
+        if tenant:
+            self.fields['servico'].queryset = Servico.objects.filter(
+                tenant=tenant, ativo=True
+            )
 
         choices = [('', '— Selecione a data primeiro —')]
         if horarios_disponiveis:

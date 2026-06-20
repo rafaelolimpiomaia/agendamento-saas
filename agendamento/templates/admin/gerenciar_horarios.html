@@ -384,7 +384,7 @@ body{
                 <div class="subtitle">Bloqueie, libere ou desbloqueie horários da agenda.</div>
             </div>
 
-            <a href="{% url 'painel_admin' %}" class="back-btn">
+            <a href="{% url 'painel_admin' tenant_slug=tenant_slug %}" class="back-btn">
                 Voltar
             </a>
         </div>
@@ -553,7 +553,7 @@ document.addEventListener("DOMContentLoaded", function () {
             defaultDate: valorInicial || null,
             onChange: function(selectedDates, dateStr) {
                 if (dateStr) {
-                    window.location.href = `{% url 'gerenciar_horarios' %}?data=${encodeURIComponent(dateStr)}`;
+                    window.location.href = `{% url 'gerenciar_horarios' tenant_slug=tenant_slug %}?data=${encodeURIComponent(dateStr)}`;
                 }
             }
         });
@@ -586,7 +586,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     dataObj.getMonth() !== Number(mes) - 1 ||
                     dataObj.getDate() !== Number(dia)
                 ) return;
-                window.location.href = `{% url 'gerenciar_horarios' %}?data=${encodeURIComponent(valor)}`;
+                window.location.href = `{% url 'gerenciar_horarios' tenant_slug=tenant_slug %}?data=${encodeURIComponent(valor)}`;
             }
         });
     }
@@ -685,22 +685,22 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     btnBloquear.addEventListener("click", function () {
-        if (contexto === "horario") enviarAcao("{% url 'bloquear_horario' %}");
-        else if (contexto === "dia") enviarAcao("{% url 'bloquear_dia' %}");
+        if (contexto === "horario") enviarAcao("{% url 'bloquear_horario' tenant_slug=tenant_slug %}");
+        else if (contexto === "dia") enviarAcao("{% url 'bloquear_dia' tenant_slug=tenant_slug %}");
     });
 
     btnLiberar.addEventListener("click", function () {
         // só usado para horários dentro de um dia bloqueado
-        if (contexto === "horario") enviarAcao("{% url 'liberar_horario' %}");
+        if (contexto === "horario") enviarAcao("{% url 'liberar_horario' tenant_slug=tenant_slug %}");
     });
 
     btnDesbloquear.addEventListener("click", function () {
     if (contexto === "horario" && statusAtual === "excecao") {
-        enviarAcao("{% url 'remover_excecao' %}");
+        enviarAcao("{% url 'remover_excecao' tenant_slug=tenant_slug %}");
     } else if (contexto === "horario") {
-        enviarAcao("{% url 'desbloquear_horario' %}");
+        enviarAcao("{% url 'desbloquear_horario' tenant_slug=tenant_slug %}");
     } else if (contexto === "dia") {
-        enviarAcao("{% url 'desbloquear_dia' %}");
+        enviarAcao("{% url 'desbloquear_dia' tenant_slug=tenant_slug %}");
     }
 });
 

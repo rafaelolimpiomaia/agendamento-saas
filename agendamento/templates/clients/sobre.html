@@ -473,7 +473,7 @@
                     </div>
                 </div>
     
-                <a href="javascript:history.back()" class="btn-voltar">
+                <a href="{% url 'home' tenant_slug=tenant_slug %}" class="btn-voltar">
                     <i class="bi bi-arrow-left"></i>
                     Voltar
                 </a>
@@ -496,7 +496,7 @@
                     </p>
 
                     <div class="hero-actions">
-                        <a href="{% url 'agendar' %}" class="btn btn-primary btn-acao">
+                        <a href="{% url 'escolher_servico' tenant_slug=tenant_slug %}" class="btn btn-primary btn-acao">
                             <i class="bi bi-calendar-check"></i>
                             Agendar agora
                         </a>
@@ -681,7 +681,7 @@
                 <p>Agende em poucos cliques e tenha uma experiência mais organizada e profissional.</p>
             </div>
 
-            <a href="{% url 'agendar' %}" class="btn btn-light">
+            <a href="{% url 'escolher_servico' tenant_slug=tenant_slug %}" class="btn btn-light">
                 <i class="bi bi-calendar-plus"></i>
                 Fazer agendamento
             </a>

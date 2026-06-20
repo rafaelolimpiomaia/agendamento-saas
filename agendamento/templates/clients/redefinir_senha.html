@@ -275,7 +275,7 @@ body{
     </form>
 
     <!-- Voltar login -->
-    <a href="{% url 'login' %}" class="btn-back">
+    <a href="{% url 'login' tenant_slug=tenant_slug %}" class="btn-back">
         Voltar para o login
     </a>
 </div>

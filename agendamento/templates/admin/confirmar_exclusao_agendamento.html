@@ -193,10 +193,10 @@
         </div>
 
         <div class="btn-group-confirm">
-            <a href="{% url 'proximos_agendamentos' %}" class="btn-cancel">
+            <a href="{% url 'proximos_agendamentos' tenant_slug=tenant_slug %}" class="btn-cancel">
                 <i class="bi bi-x-lg"></i> Cancelar
             </a>
-            <form method="post" action="{% url 'excluir_agendamento_admin' agendamento.id %}" style="flex:1;min-width:130px;">
+            <form method="post" action="{% url 'excluir_agendamento_admin' id=agendamento.id tenant_slug=tenant_slug %}" style="flex:1;min-width:130px;">
                 {% csrf_token %}
                 <button type="submit" class="btn-confirm-delete" style="width:100%;">
                     <i class="bi bi-trash3-fill"></i> Confirmar exclusão

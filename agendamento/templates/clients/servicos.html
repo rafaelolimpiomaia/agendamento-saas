@@ -215,7 +215,7 @@ body {
             <h1>Serviços</h1>
         </div>
 
-        <a href="{% url 'home' %}" class="btn-voltar">
+        <a href="{% url 'home' tenant_slug=tenant_slug %}" class="btn-voltar">
             <i class="bi bi-arrow-left"></i>
         </a>
     </div>
@@ -241,7 +241,7 @@ body {
             <div class="servico-right">
                 <div class="servico-preco">R$ {{ servico.preco }}</div>
 
-                <form method="POST" action="{% url 'escolher_servico' %}">
+                <form method="POST" action="{% url 'escolher_servico' tenant_slug=tenant_slug %}">
                     {% csrf_token %}
                     <input type="hidden" name="servico" value="{{ servico.id }}">
 

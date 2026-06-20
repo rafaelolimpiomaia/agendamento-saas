@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{% block title %}Agendamento Online{% endblock %}</title>
+    <title>{% block title %}{{ tenant.nome }} — Agendamentos{% endblock %}</title>
 
     <link rel="icon" href="{% static 'agendamento/gem.svg' %}" type="image/svg+xml">
 
@@ -21,7 +21,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Botão flutuante de tutorial -->
-<button id="help-fab" onclick="window.location.href='{% url 'tutorial' %}?ajuda=1'" aria-label="Abrir tutorial de ajuda" style="
+<button id="help-fab" onclick="window.location.href='{% url 'tutorial' tenant_slug=tenant_slug %}?ajuda=1'" aria-label="Abrir tutorial de ajuda" style="
     position: fixed;
     bottom: 1.5rem;
     right: 1.5rem;
@@ -45,7 +45,7 @@
         <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
         <line x1="12" y1="17" x2="12.01" y2="17"/>
     </svg>
-    Tutorial
+    {{ tenant.nome }} - Tutorial
 </button>
 
     {% block extra_js %}{% endblock %}

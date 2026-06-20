@@ -526,12 +526,12 @@
             </div>
 
             <div class="agenda-header-actions">
-                <a href="{% url 'home' %}" class="btn-voltar">
+                <a href="{% url 'home' tenant_slug=tenant_slug %}" class="btn-voltar">
                     <i class="bi bi-arrow-left"></i>
                     Voltar
                 </a>
 
-                <a href="{% url 'agendar' %}" class="btn-novo">
+                <a href="{% url 'escolher_servico' tenant_slug=tenant_slug %}" class="btn-novo">
                     <i class="bi bi-calendar-plus"></i>
                     Novo agendamento
                 </a>
@@ -664,7 +664,7 @@
                                     </small>
 
                                     <div class="action-group">
-                                        <a href="{% url 'confirmar_exclusao' agendamento.id %}" class="btn btn-outline-danger btn-card">
+                                        <a href="{% url 'confirmar_exclusao' id=agendamento.id tenant_slug=tenant_slug %}" class="btn btn-outline-danger btn-card">
                                             <i class="bi bi-trash3"></i>
                                             Cancelar
                                         </a>
@@ -685,7 +685,7 @@
                             ele aparecerá aqui de forma organizada para facilitar o acompanhamento.
                         </p>
 
-                        <a href="{% url 'agendar' %}" class="btn-novo">
+                        <a href="{% url 'escolher_servico' tenant_slug=tenant_slug %}" class="btn-novo">
                             <i class="bi bi-calendar-plus"></i>
                             Fazer meu primeiro agendamento
                         </a>

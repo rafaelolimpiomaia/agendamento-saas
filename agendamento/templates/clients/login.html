@@ -192,11 +192,11 @@
 
                     <div class="text-center mt-4 register-link">
                         <span class="text-muted">Não tem conta?</span>
-                        <a href="/register/">Criar conta</a>
+                        <a href="{% url 'register' tenant_slug=tenant_slug %}">Criar conta</a>
                     </div>
 
                     <div class="password-bnt">
-                        <a href="{% url 'esqueci_senha' %}">
+                        <a href="{% url 'esqueci_senha' tenant_slug=tenant_slug %}">
                             Esqueci minha senha
                         </a>
                     </div>

@@ -170,7 +170,7 @@ body {
     </div>
 
     <div class="actions">
-        <a href="{% url 'listar_clientes' %}" class="btn-cancel">
+        <a href="{% url 'listar_clientes' tenant_slug=tenant_slug %}" class="btn-cancel">
             <i class="bi bi-arrow-left"></i> Cancelar
         </a>
         <form method="post" style="flex:1; margin:0;">
