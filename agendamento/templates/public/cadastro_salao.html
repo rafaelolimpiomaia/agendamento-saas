@@ -2,14 +2,805 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Cadastrar Salão</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cadastrar Salão — Agendamento Digital</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #0d6efd;
+            --blue-light: #e7f1ff;
+            --blue-dark: #0a58ca;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e7f1ff, #f0f6ff);
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+        }
+
+        .register-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(13, 110, 253, 0.12);
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 560px;
+        }
+
+        /* ── HEADER ── */
+        .card-header-custom {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .brand-icon {
+            width: 68px;
+            height: 68px;
+            background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 28px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(13, 110, 253, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .card-subtitle {
+            font-size: 0.92rem;
+            color: #6b7280;
+        }
+
+        /* ── SEÇÕES ── */
+        .section-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--blue);
+            margin-bottom: 14px;
+            margin-top: 28px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--blue-light);
+        }
+
+        .section-label:first-of-type { margin-top: 0; }
+
+        /* ── CAMPOS ── */
+        .form-label {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            border: 1.5px solid #e5e7eb;
+            padding: 11px 14px;
+            font-size: 0.92rem;
+            color: #111827;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            height: auto;
+        }
+
+        .form-control:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+            outline: none;
+        }
+
+        .form-control.is-invalid { border-color: #ef4444; }
+
+        .invalid-feedback {
+            font-size: 0.82rem;
+            color: #ef4444;
+        }
+
+        /* ── SLUG PREVIEW ── */
+        .slug-preview {
+            background: #f9fafb;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .slug-preview span {
+            color: var(--blue);
+            font-weight: 700;
+        }
+
+        /* ── DROPDOWN CUSTOMIZADO ── */
+        .custom-select-wrapper {
+            position: relative;
+        }
+
+        .custom-select-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1.5px solid #e5e7eb;
+            padding: 11px 40px 11px 14px;
+            font-size: 0.92rem;
+            color: #111827;
+            background: #fff;
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .custom-select-btn:focus,
+        .custom-select-btn.open {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+            outline: none;
+        }
+
+        .custom-select-btn.is-invalid {
+            border-color: #ef4444;
+        }
+
+        .custom-select-btn .chevron {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: transform 0.2s;
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+
+        .custom-select-btn.open .chevron {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .custom-select-btn .tipo-icon {
+            font-size: 1.1rem;
+            color: var(--blue);
+        }
+
+        .custom-select-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 14px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+            z-index: 100;
+            overflow: hidden;
+            display: none;
+        }
+
+        .custom-select-dropdown.show { display: block; }
+
+        .custom-select-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 0.92rem;
+            color: #111827;
+        }
+
+        .custom-select-option:hover {
+            background: var(--blue-light);
+        }
+
+        .custom-select-option.selected {
+            background: var(--blue-light);
+            color: var(--blue);
+            font-weight: 700;
+        }
+
+        .custom-select-option .opt-icon {
+            font-size: 1.2rem;
+            color: var(--blue);
+            width: 24px;
+            text-align: center;
+        }
+
+        .custom-select-option .opt-label { flex: 1; }
+
+        .custom-select-option .opt-check {
+            color: var(--blue);
+            font-size: 0.9rem;
+            opacity: 0;
+        }
+
+        .custom-select-option.selected .opt-check { opacity: 1; }
+
+        /* hidden input real */
+        #id_tipo_negocio { display: none; }
+
+        /* ── TOGGLE SENHA ── */
+        .input-group .form-control {
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+        }
+
+        .toggle-password {
+            border-radius: 0 12px 12px 0;
+            border: 1.5px solid #e5e7eb;
+            border-left: none;
+            background: white;
+            color: #6b7280;
+            padding: 0 14px;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover { color: var(--blue); }
+        .toggle-password:focus { box-shadow: none; outline: none; }
+
+        /* ── TERMOS ── */
+        .termos-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            border: 1.5px solid #d1d5db;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .form-check-input:focus {
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+        }
+
+        .termos-label {
+            font-size: 0.88rem;
+            color: #374151;
+            line-height: 1.5;
+        }
+
+        .termos-label a {
+            color: var(--blue);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .termos-label a:hover { text-decoration: underline; }
+
+        /* ── BOTÕES ── */
+        .btn-cadastrar {
+            background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 28px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-cadastrar:hover { opacity: 0.92; transform: translateY(-1px); }
+        .btn-cadastrar:active { transform: translateY(0); }
+
+        .btn-acessar {
+            background: #fff;
+            color: var(--blue);
+            border: 2px solid var(--blue);
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 12px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-acessar:hover {
+            background: var(--blue-light);
+            transform: translateY(-1px);
+            color: var(--blue);
+        }
+
+        .btn-acessar:active { transform: translateY(0); }
+
+        .divider-ou {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.82rem;
+            color: #9ca3af;
+            position: relative;
+        }
+
+        .divider-ou::before,
+        .divider-ou::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 42%;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .divider-ou::before { left: 0; }
+        .divider-ou::after { right: 0; }
+
+        /* ── ERROS GLOBAIS ── */
+        .alert-erro {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.88rem;
+            color: #991b1b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── MOBILE ── */
+        @media (max-width: 576px) {
+            body { background: #ffffff; }
+            .page-wrapper { padding: 0; align-items: flex-start; }
+            .register-card {
+                border-radius: 0;
+                box-shadow: none;
+                padding: 28px 20px;
+                min-height: 100vh;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Cadastro de Salão</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Cadastrar</button>
-    </form>
+<div class="page-wrapper">
+    <div class="register-card">
+
+        <!-- Header -->
+        <div class="card-header-custom">
+            <div class="brand-icon">
+                <i class="bi bi-scissors"></i>
+            </div>
+            <h1 class="card-title">Cadastrar Salão</h1>
+            <p class="card-subtitle">Preencha os dados abaixo para criar sua conta</p>
+        </div>
+
+        {% if form.non_field_errors %}
+            {% for erro in form.non_field_errors %}
+                <div class="alert-erro">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    {{ erro }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'cadastro_salao' %}">
+            {% csrf_token %}
+
+            <!-- ── SEÇÃO 1: ESTABELECIMENTO ── -->
+            <div class="section-label">
+                <i class="bi bi-shop"></i> Estabelecimento
+            </div>
+
+            <!-- Nome do salão -->
+            <div class="mb-3">
+                <label class="form-label" for="id_nome_salao">Nome do salão *</label>
+                <input
+                    type="text"
+                    id="id_nome_salao"
+                    name="nome_salao"
+                    class="form-control {% if form.nome_salao.errors %}is-invalid{% endif %}"
+                    placeholder="Ex: Salão da Maria"
+                    value="{{ form.nome_salao.value|default:'' }}"
+                    required
+                >
+                {% if form.nome_salao.errors %}
+                    <div class="invalid-feedback">{{ form.nome_salao.errors|join:', ' }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Tipo de negócio — dropdown customizado -->
+            <div class="mb-3">
+                <label class="form-label">Tipo de negócio *</label>
+
+                <input type="hidden" id="id_tipo_negocio" name="tipo_negocio" value="{{ form.tipo_negocio.value|default:'' }}">
+
+                <div class="custom-select-wrapper">
+                    <button type="button" class="custom-select-btn {% if form.tipo_negocio.errors %}is-invalid{% endif %}" id="tipoBtn">
+                        <i class="bi bi-shop-window tipo-icon" id="tipoIcone"></i>
+                        <span id="tipoTexto">— Selecione o tipo —</span>
+                        <i class="bi bi-chevron-down chevron"></i>
+                    </button>
+                    <div class="custom-select-dropdown" id="tipoDropdown">
+                        <div class="custom-select-option" data-value="salao" data-icon="bi-scissors" data-label="Salão de Beleza">
+                            <i class="bi bi-scissors opt-icon"></i>
+                            <span class="opt-label">Salão de Beleza</span>
+                            <i class="bi bi-check2 opt-check"></i>
+                        </div>
+                        <div class="custom-select-option" data-value="barbearia" data-icon="bi-person-bounding-box" data-label="Barbearia">
+                            <i class="bi bi-person-bounding-box opt-icon"></i>
+                            <span class="opt-label">Barbearia</span>
+                            <i class="bi bi-check2 opt-check"></i>
+                        </div>
+                        <div class="custom-select-option" data-value="studio" data-icon="bi-stars" data-label="Studio de Unhas">
+                            <i class="bi bi-stars opt-icon"></i>
+                            <span class="opt-label">Studio de Unhas</span>
+                            <i class="bi bi-check2 opt-check"></i>
+                        </div>
+                        <div class="custom-select-option" data-value="outro" data-icon="bi-three-dots" data-label="Outro">
+                            <i class="bi bi-three-dots opt-icon"></i>
+                            <span class="opt-label">Outro</span>
+                            <i class="bi bi-check2 opt-check"></i>
+                        </div>
+                    </div>
+                </div>
+
+                {% if form.tipo_negocio.errors %}
+                    <div class="invalid-feedback d-block">{{ form.tipo_negocio.errors|join:', ' }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Slug -->
+            <div class="mb-3">
+                <label class="form-label" for="id_slug">Nome de acesso no sistema *</label>
+                <input
+                    type="text"
+                    id="id_slug"
+                    name="slug"
+                    class="form-control {% if form.slug.errors %}is-invalid{% endif %}"
+                    placeholder="salao-da-maria"
+                    value="{{ form.slug.value|default:'' }}"
+                    required
+                >
+                <div class="slug-preview">
+                    <i class="bi bi-link-45deg"></i>
+                    agendamentodigital.com.br/<span id="slugPreview">{{ form.slug.value|default:'seu-salao' }}</span>
+                </div>
+                {% if form.slug.errors %}
+                    <div class="invalid-feedback d-block">{{ form.slug.errors|join:', ' }}</div>
+                {% endif %}
+            </div>
+
+            <!-- ── SEÇÃO 2: DONO ── -->
+            <div class="section-label">
+                <i class="bi bi-person"></i> Seus Dados
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="id_nome_responsavel">Nome do proprietário *</label>
+                <input
+                    type="text"
+                    id="id_nome_responsavel"
+                    name="nome_responsavel"
+                    class="form-control {% if form.nome_responsavel.errors %}is-invalid{% endif %}"
+                    placeholder="Seu nome completo"
+                    value="{{ form.nome_responsavel.value|default:'' }}"
+                    required
+                >
+                {% if form.nome_responsavel.errors %}
+                    <div class="invalid-feedback">{{ form.nome_responsavel.errors|join:', ' }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="id_telefone">Telefone *</label>
+                <input
+                    type="text"
+                    id="id_telefone"
+                    name="telefone"
+                    class="form-control {% if form.telefone.errors %}is-invalid{% endif %}"
+                    placeholder="(83) 90000-0000"
+                    value="{{ form.telefone.value|default:'' }}"
+                    required
+                >
+                {% if form.telefone.errors %}
+                    <div class="invalid-feedback">{{ form.telefone.errors|join:', ' }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="id_email">E-mail *</label>
+                <input
+                    type="email"
+                    id="id_email"
+                    name="email"
+                    class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                    placeholder="seu@email.com"
+                    value="{{ form.email.value|default:'' }}"
+                    required
+                >
+                {% if form.email.errors %}
+                    <div class="invalid-feedback">{{ form.email.errors|join:', ' }}</div>
+                {% endif %}
+            </div>
+
+            <!-- ── SEÇÃO 3: CONTA ── -->
+            <div class="section-label">
+                <i class="bi bi-lock"></i> Sua Conta
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="id_codigo_convite">
+                    Código de acesso *
+                </label>
+                <div style="position:relative;">
+                    <input
+                        type="text"
+                        id="id_codigo_convite"
+                        name="codigo_convite"
+                        class="form-control {% if form.codigo_convite.errors %}is-invalid{% endif %}"
+                        placeholder="Código fornecido no momento da contratação"
+                        value="{{ form.codigo_convite.value|default:'' }}"
+                        required
+                        style="padding-left: 42px;"
+                    >
+                    <i class="bi bi-key-fill" style="
+                        position: absolute;
+                        left: 14px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        color: #0d6efd;
+                        font-size: 1rem;
+                        pointer-events: none;
+                    "></i>
+                </div>
+                {% if form.codigo_convite.errors %}
+                    <div class="invalid-feedback d-block">{{ form.codigo_convite.errors|join:', ' }}</div>
+                {% endif %}
+                <div style="font-size:0.78rem; color:#6b7280; margin-top:5px;">
+                    <i class="bi bi-info-circle"></i>
+                    Não tem um código? <a href="https://wa.me/5583993024480" target="_blank" style="color:#0d6efd; font-weight:600;">Entre em contato</a>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="id_senha">Senha *</label>
+                <div class="input-group">
+                    <input
+                        type="password"
+                        id="id_senha"
+                        name="senha"
+                        class="form-control {% if form.senha.errors %}is-invalid{% endif %}"
+                        placeholder="Mínimo 6 caracteres"
+                        required
+                    >
+                    <button class="btn btn-outline-secondary toggle-password" type="button"
+                        onclick="toggleSenha('id_senha', 'eye1')">
+                        <i class="bi bi-eye" id="eye1"></i>
+                    </button>
+                </div>
+                {% if form.senha.errors %}
+                    <div class="invalid-feedback d-block">{{ form.senha.errors|join:', ' }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="id_confirmar_senha">Confirmar senha *</label>
+                <div class="input-group">
+                    <input
+                        type="password"
+                        id="id_confirmar_senha"
+                        name="confirmar_senha"
+                        class="form-control {% if form.confirmar_senha.errors %}is-invalid{% endif %}"
+                        placeholder="Repita sua senha"
+                        required
+                    >
+                    <button class="btn btn-outline-secondary toggle-password" type="button"
+                        onclick="toggleSenha('id_confirmar_senha', 'eye2')">
+                        <i class="bi bi-eye" id="eye2"></i>
+                    </button>
+                </div>
+                {% if form.confirmar_senha.errors %}
+                    <div class="invalid-feedback d-block">{{ form.confirmar_senha.errors|join:', ' }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Termos -->
+            <div class="mb-1">
+                <div class="termos-row">
+                    <input
+                        type="checkbox"
+                        id="id_termos"
+                        name="termos"
+                        class="form-check-input {% if form.termos.errors %}is-invalid{% endif %}"
+                        {% if form.termos.value %}checked{% endif %}
+                    >
+                    <label class="termos-label" for="id_termos">
+                        Li e aceito os <a href="#" target="_blank">Termos de Uso</a>
+                        e a <a href="#" target="_blank">Política de Privacidade</a>
+                    </label>
+                </div>
+                {% if form.termos.errors %}
+                    <div class="invalid-feedback d-block mt-1">{{ form.termos.errors|join:', ' }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Botão cadastrar -->
+            <button type="submit" class="btn-cadastrar">
+                <i class="bi bi-check-circle-fill"></i>
+                Criar minha conta
+            </button>
+        </form>
+
+        <!-- Divisor -->
+        <div class="divider-ou">ou</div>
+
+        <!-- Botão acessar salão -->
+        <a href="{% url 'landing' %}" class="btn-acessar">
+            <i class="bi bi-box-arrow-in-right"></i>
+            Já tenho conta — Acessar meu salão
+        </a>
+
+    </div>
+</div>
+
+<script>
+    // ── Toggle senha ──────────────────────────────────────────
+    function toggleSenha(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon  = document.getElementById(iconId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    }
+
+    // ── Dropdown customizado ──────────────────────────────────
+    const tipoBtn      = document.getElementById('tipoBtn');
+    const tipoDropdown = document.getElementById('tipoDropdown');
+    const tipoInput    = document.getElementById('id_tipo_negocio');
+    const tipoTexto    = document.getElementById('tipoTexto');
+    const tipoIcone    = document.getElementById('tipoIcone');
+
+    tipoBtn.addEventListener('click', function () {
+        tipoDropdown.classList.toggle('show');
+        tipoBtn.classList.toggle('open');
+    });
+
+    document.querySelectorAll('.custom-select-option').forEach(function (opt) {
+        opt.addEventListener('click', function () {
+            const value = this.dataset.value;
+            const label = this.dataset.label;
+            const icon  = this.dataset.icon;
+
+            tipoInput.value = value;
+            tipoTexto.textContent = label;
+            tipoIcone.className = 'bi ' + icon + ' tipo-icon';
+
+            document.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+
+            tipoDropdown.classList.remove('show');
+            tipoBtn.classList.remove('open');
+        });
+    });
+
+    // Fecha dropdown ao clicar fora
+    document.addEventListener('click', function (e) {
+        if (!tipoBtn.contains(e.target) && !tipoDropdown.contains(e.target)) {
+            tipoDropdown.classList.remove('show');
+            tipoBtn.classList.remove('open');
+        }
+    });
+
+    // Restaura seleção se houver valor (ex: após erro de validação)
+    const valorAtual = tipoInput.value;
+    if (valorAtual) {
+        const optAtual = document.querySelector(`.custom-select-option[data-value="${valorAtual}"]`);
+        if (optAtual) {
+            tipoTexto.textContent = optAtual.dataset.label;
+            tipoIcone.className = 'bi ' + optAtual.dataset.icon + ' tipo-icon';
+            optAtual.classList.add('selected');
+        }
+    }
+
+    // ── Slug automático ───────────────────────────────────────
+    const nomeInput  = document.getElementById('id_nome_salao');
+    const slugInput  = document.getElementById('id_slug');
+    const slugPreview = document.getElementById('slugPreview');
+
+    function gerarSlug(texto) {
+        return texto
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-');
+    }
+
+    let slugEditadoManualmente = false;
+
+    slugInput.addEventListener('input', function () {
+        slugEditadoManualmente = true;
+        slugPreview.textContent = this.value || 'seu-salao';
+    });
+
+    nomeInput.addEventListener('input', function () {
+        if (!slugEditadoManualmente) {
+            const gerado = gerarSlug(this.value);
+            slugInput.value = gerado;
+            slugPreview.textContent = gerado || 'seu-salao';
+        }
+    });
+
+    // ── Máscara telefone ──────────────────────────────────────
+    const telInput = document.getElementById('id_telefone');
+    if (telInput) {
+        telInput.addEventListener('input', function (e) {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 6) {
+                v = v.replace(/(\d{2})(\d{5})(\d+)/, '($1) $2-$3');
+            } else if (v.length > 2) {
+                v = v.replace(/(\d{2})(\d+)/, '($1) $2');
+            }
+            e.target.value = v;
+        });
+    }
+</script>
 </body>
 </html>

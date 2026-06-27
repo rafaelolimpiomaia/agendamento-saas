@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.contrib.auth import login
-from .models import Tenant
+from django.contrib.auth import login, authenticate
+from .models import Tenant, CodigoConvite
 from .forms import CadastroSalaoForm
+from django.utils import timezone
 
 
 def landing(request):
@@ -29,7 +30,7 @@ def cadastro_salao(request):
 
         # 1. Cria o usuário administrador
         user = User.objects.create_user(
-            username=email,
+            username=nome_resp,
             email=email,
             password=senha,
             first_name=nome_resp,
@@ -40,11 +41,21 @@ def cadastro_salao(request):
         tenant = Tenant.objects.create(
             nome=nome_salao,
             slug=slug,
+            tipo_negocio=form.cleaned_data['tipo_negocio'],
+            nome_responsavel=form.cleaned_data['nome_responsavel'],
             telefone=telefone,
-            cnpj=cnpj,
             email=email,
             admin=user,
+            termos_aceitos=True,
+            termos_aceitos_em=timezone.now(),
         )
+
+        #Codigo confirmação
+        codigo = form.cleaned_data['codigo_convite']
+        convite = CodigoConvite.objects.get(codigo=codigo, usado=False)
+        convite.usado = True
+        convite.usado_por = tenant
+        convite.save()
 
         # 3. Loga o admin automaticamente
         login(request, user)
@@ -62,3 +73,27 @@ def onboarding(request, tenant_slug):
     """
     tenant = request.tenant  # já resolvido pelo middleware
     return render(request, 'admin/onboarding.html', {'tenant': tenant})
+
+def login_proprietario(request):
+    if request.method == 'POST':
+        slug = request.POST.get('slug', '').strip()
+        senha = request.POST.get('senha', '').strip()
+
+        try:
+            tenant = Tenant.objects.get(slug=slug, ativo=True)
+        except Tenant.DoesNotExist:
+            return render(request, 'public/landing.html', {
+                'erro_login': 'Salão não encontrado.'
+            })
+
+        user = authenticate(request, username=tenant.admin.username, password=senha)
+
+        if user and user.is_staff:
+            login(request, user)
+            return redirect('painel_admin', tenant_slug=slug)
+
+        return render(request, 'public/landing.html', {
+            'erro_login': 'Senha incorreta.'
+        })
+
+    return redirect('landing')

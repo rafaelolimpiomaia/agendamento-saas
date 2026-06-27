@@ -25,8 +25,7 @@ urlpatterns = [
     path('cadastro/', public_views.cadastro_salao, name='cadastro_salao'),
     path('admin/', admin.site.urls),
 
-    path('<slug:tenant_slug>/onboarding/', public_views.onboarding, name='onboarding'),
-    
+    path('entrar/', public_views.login_proprietario, name='login_proprietario'),
     # Rotas do salão — prefixadas pelo slug
     path('<slug:tenant_slug>/', include('agendamento.urls')),
 ]

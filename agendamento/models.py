@@ -4,17 +4,34 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import time
 from django.utils.text import slugify
+import secrets
 
 class Tenant(models.Model):
-    nome        = models.CharField(max_length=50)
-    slug        = models.SlugField(max_length=60, unique=True)
-    telefone    = models.CharField(max_length=20)
-    cnpj        = models.CharField(max_length=18, blank=True, default='')
-    email       = models.EmailField()
-    ativo       = models.BooleanField(default=True)
-    criado_em   = models.DateTimeField(auto_now_add=True)
-    # admin do salão (owner)
-    admin       = models.OneToOneField(
+    TIPO_CHOICES = [
+        ('salao',      'Salão de Beleza'),
+        ('barbearia',  'Barbearia'),
+        ('studio',     'Studio de Unhas'),
+        ('outro',      'Outro'),
+    ]
+
+    # ── Estabelecimento ───────────────────────────────────────
+    nome             = models.CharField(max_length=100)
+    slug             = models.SlugField(max_length=60, unique=True)
+    tipo_negocio     = models.CharField(max_length=20, choices=TIPO_CHOICES, default='salao')
+
+    # ── Dono ─────────────────────────────────────────────────
+    nome_responsavel = models.CharField(max_length=100, default='')
+    telefone         = models.CharField(max_length=20)
+    email            = models.EmailField()
+
+    # ── Termos ───────────────────────────────────────────────
+    termos_aceitos    = models.BooleanField(default=False)
+    termos_aceitos_em = models.DateTimeField(null=True, blank=True)
+
+    # ── Controle ─────────────────────────────────────────────
+    ativo     = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    admin     = models.OneToOneField(
         'auth.User',
         on_delete=models.CASCADE,
         related_name='tenant_admin',
@@ -32,6 +49,31 @@ class Tenant(models.Model):
     class Meta:
         verbose_name = 'Salão'
         verbose_name_plural = 'Salões'
+
+class CodigoConvite(models.Model):
+    codigo    = models.CharField(max_length=20, unique=True)
+    usado     = models.BooleanField(default=False)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    usado_por = models.OneToOneField(
+        'Tenant',
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='codigo_convite',
+    )
+
+    def __str__(self):
+        status = f"usado por {self.usado_por.nome}" if self.usado else "disponível"
+        return f"{self.codigo} — {status}"
+
+    @classmethod
+    def gerar(cls):
+        """Gera e salva um novo código aleatório."""
+        codigo = secrets.token_urlsafe(8)
+        return cls.objects.create(codigo=codigo)
+
+    class Meta:
+        verbose_name = 'Código de Convite'
+        verbose_name_plural = 'Códigos de Convite'
 
 
 class Cliente(models.Model):

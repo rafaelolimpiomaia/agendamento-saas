@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, views_public
 
 urlpatterns = [
     path('home/', views.home, name='home'),
@@ -41,4 +41,5 @@ urlpatterns = [
     path('painel/calendario/', views.calendario_admin, name='calendario_admin'),
     path('painel/calendario/dados/', views.api_calendario_dados, name='api_calendario_dados'),
     path('painel/agendamento/manual/', views.agendamento_manual, name='agendamento_manual'),
+    path('onboarding/', views_public.onboarding, name='onboarding'),
 ]

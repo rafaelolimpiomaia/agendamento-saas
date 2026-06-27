@@ -30,7 +30,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 #DEBUG = os.environ.get('DEBUG') == 'True'
 
 #TESTES LOCAIS
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS',

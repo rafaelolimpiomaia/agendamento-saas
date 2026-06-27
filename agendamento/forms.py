@@ -1,52 +1,107 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import Agendamento, Tenant, Servico
+from .models import Agendamento, Tenant, Servico, CodigoConvite
 from datetime import date, time, datetime
 from django.utils.text import slugify
 
 
 class CadastroSalaoForm(forms.Form):
+    # ── Seção 1: Estabelecimento ──────────────────────────────
     nome_salao = forms.CharField(
         label='Nome do salão',
         max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Salão da Maria'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ex: Salão da Maria',
+            'id': 'id_nome_salao',
+        })
+    )
+    tipo_negocio = forms.ChoiceField(
+        label='Tipo de negócio',
+        choices=[
+            ('salao',     'Salão de Beleza'),
+            ('barbearia', 'Barbearia'),
+            ('studio',    'Studio de Unhas'),
+            ('outro',     'Outro'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     slug = forms.SlugField(
-        label='Endereço do salão (URL)',
+        label='Nome de acesso no sistema',
         max_length=60,
-        help_text='Somente letras minúsculas, números e hífens. Ex: salao-da-maria',
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'id': 'id_slug',
+            'placeholder': 'salao-da-maria',
+        })
+    )
+
+    # ── Seção 2: Dono ─────────────────────────────────────────
+    nome_responsavel = forms.CharField(
+        label='Nome do proprietário',
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Seu nome completo',
+        })
     )
     telefone = forms.CharField(
         label='Telefone',
         max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(83) 90000-0000'})
-    )
-    cnpj = forms.CharField(
-        label='CNPJ (opcional)',
-        max_length=18,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
-    )
-    nome_responsavel = forms.CharField(
-        label='Nome do responsável',
-        max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '(83) 90000-0000',
+            'id': 'id_telefone',
+        })
     )
     email = forms.EmailField(
         label='E-mail',
-        widget=forms.EmailInput(attrs={'class': 'form-control'})
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'seu@email.com',
+        })
     )
+    # ── Codigo de Convite ────────────────────────────────────────
+    codigo_convite = forms.CharField(
+        label='Código de acesso',
+        max_length=20,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Código fornecido no momento da contratação',
+        })
+    )   
+    # ── Seção 3: Conta ────────────────────────────────────────
     senha = forms.CharField(
         label='Senha',
         min_length=6,
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Mínimo 6 caracteres',
+            'id': 'id_senha',
+        })
     )
     confirmar_senha = forms.CharField(
         label='Confirmar senha',
-        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Repita sua senha',
+            'id': 'id_confirmar_senha',
+        })
     )
+    termos = forms.BooleanField(
+        label='Li e aceito os Termos de Uso',
+        error_messages={'required': 'Você precisa aceitar os termos para continuar.'},
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    def clean_codigo_convite(self):
+        codigo = self.cleaned_data.get('codigo_convite', '').strip()
+        try:
+            convite = CodigoConvite.objects.get(codigo=codigo, usado=False)
+        except CodigoConvite.DoesNotExist:
+            raise forms.ValidationError('Código inválido ou já utilizado.')
+        return codigo
 
     def clean_slug(self):
         slug = self.cleaned_data.get('slug')
@@ -54,9 +109,15 @@ class CadastroSalaoForm(forms.Form):
             raise forms.ValidationError('Este endereço já está em uso. Escolha outro.')
         return slug
 
+    def clean_nome_responsavel(self):
+        nome = self.cleaned_data.get('nome_responsavel')
+        if User.objects.filter(username=nome).exists():
+            raise forms.ValidationError('Já existe uma conta com este nome.')
+        return nome
+    
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if User.objects.filter(username=email).exists():
+        if User.objects.filter(email=email).exists():
             raise forms.ValidationError('Este e-mail já está cadastrado.')
         return email
 
@@ -67,7 +128,6 @@ class CadastroSalaoForm(forms.Form):
         if senha and confirmar and senha != confirmar:
             self.add_error('confirmar_senha', 'As senhas não coincidem.')
         return cleaned_data
-
 
 class AgendamentoForm(forms.ModelForm):
     class Meta:

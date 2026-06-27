@@ -153,5 +153,5 @@ Desenvolvido por Erick Amorim e Rafael Maia
 [LinkedIn] [https://www.linkedin.com/in/erickamorimtrindade/]
 [GitHub] [https://github.com/erickamorimtrindade]
 
-[LinkedIn] [https://www.linkedin.com/in/rafael-olímpio-96999a2b5/]
+[LinkedIn] [https://www.linkedin.com/in/rafaelolimpiomaia/]
 [GitHub] [https://github.com/rafaelolimpioo]
