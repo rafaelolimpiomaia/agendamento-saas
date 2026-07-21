@@ -97,3 +97,9 @@ def login_proprietario(request):
         })
 
     return redirect('landing')
+
+def termos(request):
+    return render(request, 'public/termos.html')
+
+def privacidade(request):
+    return render(request, 'public/privacidade.html')

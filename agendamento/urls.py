@@ -42,4 +42,6 @@ urlpatterns = [
     path('painel/calendario/dados/', views.api_calendario_dados, name='api_calendario_dados'),
     path('painel/agendamento/manual/', views.agendamento_manual, name='agendamento_manual'),
     path('onboarding/', views_public.onboarding, name='onboarding'),
+    path('painel/personalizar/', views.personalizar_salao, name='personalizar_salao'),
+    
 ]

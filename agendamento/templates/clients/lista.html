@@ -6,7 +6,11 @@
 <style>
     body {
         min-height: 100vh;
-        background: linear-gradient(135deg, #807f7f, #f2f5f7);
+        background: linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--cor-primaria) 10%, white),
+            color-mix(in srgb, var(--cor-primaria) 3%, white)
+        );
     }
 
     .agenda-page {
@@ -42,8 +46,8 @@
         width: 58px;
         height: 58px;
         border-radius: 18px;
-        background: rgba(13, 110, 253, 0.10);
-        color: #0d6efd;
+        background: color-mix(in srgb, var(--cor-primaria) 10%, white);
+        color: var(--cor-primaria);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -91,7 +95,7 @@
     }
 
     .btn-novo {
-        background: #0d6efd;
+        background: var(--cor-primaria);
         color: #fff;
         padding: 10px 18px;
         border-radius: 12px;
@@ -105,7 +109,7 @@
     }
 
     .btn-novo:hover {
-        background: #0b5ed7;
+        background: color-mix(in srgb, var(--cor-primaria) 85%, black);
         color: #fff;
         transform: translateY(-1px);
     }
@@ -115,8 +119,11 @@
     }
 
     .agenda-hero {
-        background: linear-gradient(135deg, #f8fbff, #eef5ff);
-        border: 1px solid #dbe9ff;
+        background: linear-gradient(135deg,
+            color-mix(in srgb, var(--cor-primaria) 5%, white),
+            color-mix(in srgb, var(--cor-primaria) 10%, white)
+        );
+        border: 1px solid color-mix(in srgb, var(--cor-primaria) 20%, white);
         border-radius: 22px;
         padding: 24px;
         margin-bottom: 26px;
@@ -150,7 +157,7 @@
         border: 1px solid #e8eff8;
         border-radius: 18px;
         padding: 16px 18px;
-        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.06);
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--cor-primaria) 6%, transparent);
     }
 
     .agenda-highlight-label {
@@ -159,8 +166,8 @@
         gap: 8px;
         font-size: 0.82rem;
         font-weight: 700;
-        color: #0d6efd;
-        background: rgba(13, 110, 253, 0.08);
+        color: var(--cor-primaria);
+        background: color-mix(in srgb, var(--cor-primaria) 8%, white);
         border-radius: 999px;
         padding: 6px 12px;
         margin-bottom: 12px;
@@ -205,8 +212,8 @@
         width: 42px;
         height: 42px;
         border-radius: 14px;
-        background: rgba(13, 110, 253, 0.10);
-        color: #0d6efd;
+        background: color-mix(in srgb, var(--cor-primaria) 10%, white);
+        color: var(--cor-primaria);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -285,11 +292,11 @@
     .agendamento-date-box {
         min-width: 74px;
         text-align: center;
-        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        background: linear-gradient(135deg, var(--cor-primaria), color-mix(in srgb, var(--cor-primaria) 85%, black));
         color: #fff;
         border-radius: 18px;
         padding: 12px 10px;
-        box-shadow: 0 10px 20px rgba(13, 110, 253, 0.24);
+        box-shadow: 0 10px 20px color-mix(in srgb, var(--cor-primaria) 24%, transparent);
     }
 
     .agendamento-date-box .dia {
@@ -347,8 +354,8 @@
     }
 
     .badge-hoje {
-        background: rgba(13, 110, 253, 0.10);
-        color: #0d6efd;
+        background: color-mix(in srgb, var(--cor-primaria) 10%, white);
+        color: var(--cor-primaria);
     }
 
     .badge-passado {
@@ -403,6 +410,13 @@
 
     .btn-outline-primary.btn-card {
         border-width: 1px;
+        color: var(--cor-primaria);
+        border-color: var(--cor-primaria);
+    }
+
+    .btn-outline-primary.btn-card:hover {
+        background: var(--cor-primaria);
+        color: #fff;
     }
 
     .btn-outline-danger.btn-card {
@@ -422,8 +436,8 @@
         height: 84px;
         margin: 0 auto 18px;
         border-radius: 24px;
-        background: rgba(13, 110, 253, 0.10);
-        color: #0d6efd;
+        background: color-mix(in srgb, var(--cor-primaria) 10%, white);
+        color: var(--cor-primaria);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -452,60 +466,18 @@
     }
 
     @media (max-width: 576px) {
-        .agenda-page {
-            padding: 0;
-        }
-
-        .agenda-wrapper {
-            border-radius: 0;
-            box-shadow: none;
-        }
-
-        .agenda-header,
-        .agenda-body {
-            padding-left: 18px;
-            padding-right: 18px;
-        }
-
-        .agenda-header {
-            padding-top: 22px;
-        }
-
-        .agenda-title-wrap h1 {
-            font-size: 1.45rem;
-        }
-
-        .agenda-hero {
-            padding: 18px;
-            border-radius: 18px;
-        }
-
-        .summary-card,
-        .agendamento-card {
-            border-radius: 18px;
-        }
-
-        .agendamento-main {
-            flex-direction: column;
-        }
-
-        .agendamento-date-box {
-            width: 78px;
-        }
-
-        .btn-voltar,
-        .btn-novo {
-            justify-content: center;
-            width: 100%;
-        }
-
-        .agenda-header-actions {
-            width: 100%;
-        }
-
-        .agenda-header-actions a {
-            flex: 1;
-        }
+        .agenda-page { padding: 0; }
+        .agenda-wrapper { border-radius: 0; box-shadow: none; }
+        .agenda-header, .agenda-body { padding-left: 18px; padding-right: 18px; }
+        .agenda-header { padding-top: 22px; }
+        .agenda-title-wrap h1 { font-size: 1.45rem; }
+        .agenda-hero { padding: 18px; border-radius: 18px; }
+        .summary-card, .agendamento-card { border-radius: 18px; }
+        .agendamento-main { flex-direction: column; }
+        .agendamento-date-box { width: 78px; }
+        .btn-voltar, .btn-novo { justify-content: center; width: 100%; }
+        .agenda-header-actions { width: 100%; }
+        .agenda-header-actions a { flex: 1; }
     }
 </style>
 {% endblock %}

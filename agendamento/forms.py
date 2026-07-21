@@ -200,7 +200,11 @@ class IdentificarUsuarioForm(forms.Form):
     telefone = forms.CharField(
         label="Telefone cadastrado",
         max_length=15,
-        widget=forms.TextInput(attrs={"placeholder": "Ex: (83) 90000-0000"})
+        widget=forms.TextInput(attrs={
+            "placeholder": "Ex: (83) 90000-0000",
+            "class": "form-control",
+            "id": "id_telefone_recuperar",
+        })
     )
 
 
@@ -295,3 +299,74 @@ class AgendamentoManualForm(forms.Form):
         if horarios_disponiveis:
             choices = [(h, h) for h in horarios_disponiveis]
         self.fields['horario'].widget.choices = choices
+
+class ConfiguracaoSalaoForm(forms.Form):
+    nome_exibicao = forms.CharField(
+        label='Nome de exibição do estabelecimento',
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ex: Salão da Maria, Barbearia do João...',
+        })
+    )
+    tipo_negocio = forms.ChoiceField(
+        label='Tipo de estabelecimento',
+        choices=[
+            ('',           '— Selecione —'),
+            ('salao',      'Salão de Beleza'),
+            ('barbearia',  'Barbearia'),
+            ('studio',     'Studio de Unhas'),
+            ('esmalteria', 'Esmalteria'),
+            ('outro',      'Outro'),
+        ],
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    telefone = forms.CharField(
+        label='Telefone para contato',
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '(83) 90000-0000',
+            'id': 'id_telefone_config',
+        })
+    )
+    publico = forms.ChoiceField(
+        label='Público atendido',
+        choices=[
+            ('homens',   'Homens'),
+            ('mulheres', 'Mulheres'),
+            ('ambos',    'Homens e Mulheres'),
+        ],
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    endereco = forms.CharField(
+        label='Endereço',
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ex: Rua das Flores, 123 — Centro, João Pessoa - PB',
+        })
+    )
+    instagram = forms.CharField(
+        label='Instagram',
+        max_length=60,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '@seu.perfil',
+        })
+    )
+    cor_primaria = forms.CharField(
+        label='Cor principal do site',
+        max_length=7,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'type': 'color',
+        })
+    )

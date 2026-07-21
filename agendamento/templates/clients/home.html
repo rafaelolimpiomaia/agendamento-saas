@@ -6,7 +6,11 @@
 <style>
     body {
         min-height: 100vh;
-        background: linear-gradient(135deg, #807f7f, #f2f5f7);
+        background: linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--cor-primaria) 10%, white),
+            color-mix(in srgb, var(--cor-primaria) 3%, white)
+        );
         font-family: Arial, sans-serif;
     }
 
@@ -29,7 +33,7 @@
     .brand-icon {
         width: 70px;
         height: 70px;
-        background-color: #0d6efd;
+        background-color: var(--cor-primaria);
         color: white;
         border-radius: 50%;
         display: flex;
@@ -181,7 +185,7 @@
     }
 
     .footer-card a:hover i {
-        color: #0d6efd;
+        color: var(--cor-primaria);
     }
 
     @media (max-width: 576px) {
@@ -216,7 +220,7 @@
                 </div>
 
                 <div class="welcome-box">
-                    <h2>Bem-vindo(a), {{ request.user.username }}</h2>
+                    <h2>Bem-vindo(a), {{ request.user.username|cut:"__"|cut:tenant_slug }}</h2>
                     <p>Escolha uma opção abaixo para continuar</p>
                 </div>
 
@@ -238,7 +242,7 @@
                             </div>
                             <div>
                                 <p class="nav-item-title">Sobre</p>
-                                <p class="nav-item-desc">Informações gerais do serviço e o WhatsApp da proprietária para eventuais dúvidas.</p>
+                                <p class="nav-item-desc">Informações gerais do serviço e o WhatsApp do proprietário para eventuais dúvidas.</p>
                             </div>
                         </div>
 
@@ -248,7 +252,7 @@
                             </div>
                             <div>
                                 <p class="nav-item-title">Suporte</p>
-                                <p class="nav-item-desc">Contato do suporte técnico e WhatsApp da proprietária para dúvidas ou problemas.</p>
+                                <p class="nav-item-desc">Contato do suporte técnico e WhatsApp do proprietário para dúvidas ou problemas.</p>
                             </div>
                         </div>
 

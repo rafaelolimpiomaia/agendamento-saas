@@ -8,15 +8,17 @@
 <style>
 
 :root {
-    --primary-50: #eef4ff;
-    --primary-100: #dfeaff;
-    --primary-150: #d7e5ff;
-    --primary-200: #c9dcff;
-    --primary-300: #9bbcff;
-    --primary-400: #6b97ff;
-    --primary-500: #3d7cff;
-    --primary-600: #2f6cf0;
-    --primary-700: #255cdd;
+    --cor-primaria: {{ config.cor_primaria|default:'#0d6efd' }};
+
+    --primary-50: color-mix(in srgb, var(--cor-primaria) 8%, white);
+    --primary-100: color-mix(in srgb, var(--cor-primaria) 15%, white);
+    --primary-150: color-mix(in srgb, var(--cor-primaria) 20%, white);
+    --primary-200: color-mix(in srgb, var(--cor-primaria) 28%, white);
+    --primary-300: color-mix(in srgb, var(--cor-primaria) 50%, white);
+    --primary-400: color-mix(in srgb, var(--cor-primaria) 70%, white);
+    --primary-500: var(--cor-primaria);
+    --primary-600: color-mix(in srgb, var(--cor-primaria) 90%, black);
+    --primary-700: color-mix(in srgb, var(--cor-primaria) 75%, black);
 
     --slate-25: #fcfdff;
     --slate-50: #f8fafc;
@@ -70,10 +72,11 @@ body {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     color: var(--slate-800);
-    background:
-        radial-gradient(circle at top left, rgba(61, 124, 255, 0.07), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(37, 92, 221, 0.07), transparent 28%),
-        linear-gradient(135deg, #eef2f7 0%, #f7f9fc 45%, #edf2f8 100%);
+    background: linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--cor-primaria) 10%, white),
+            color-mix(in srgb, var(--cor-primaria) 3%, white)
+        );
     overflow-x: hidden;
 }
 

@@ -31,7 +31,7 @@ class TenantMiddleware:
         partes = path.strip('/').split('/')
         if partes and partes[0]:
             # Ignora URLs de admin Django, static e media
-            ignorar = {'admin', 'static', 'media', 'cadastro','entrar', 'favicon.ico'}
+            ignorar = {'admin', 'static', 'media', 'cadastro','entrar', 'termos', 'privacidade', 'favicon.ico'}
             if partes[0] not in ignorar:
                 return partes[0]
         return None

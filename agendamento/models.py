@@ -76,6 +76,38 @@ class CodigoConvite(models.Model):
         verbose_name_plural = 'Códigos de Convite'
 
 
+class ConfiguracaoSalao(models.Model):
+    PUBLICO_CHOICES = [
+        ('homens',   'Homens'),
+        ('mulheres', 'Mulheres'),
+        ('ambos',    'Homens e Mulheres'),
+    ]
+
+    TIPO_CHOICES = [
+        ('salao',      'Salão de Beleza'),
+        ('barbearia',  'Barbearia'),
+        ('studio',     'Studio de Unhas'),
+        ('esmalteria', 'Esmalteria'),
+        ('outro',      'Outro'),
+    ]
+
+    tenant       = models.OneToOneField(Tenant, on_delete=models.CASCADE, related_name='configuracao')
+    nome_exibicao = models.CharField(max_length=100, blank=True, default='')
+    tipo_negocio  = models.CharField(max_length=20, choices=TIPO_CHOICES, blank=True, default='')
+    telefone      = models.CharField(max_length=20, blank=True, default='')
+    publico       = models.CharField(max_length=20, choices=PUBLICO_CHOICES, default='ambos', blank=True)
+    endereco      = models.CharField(max_length=200, blank=True, default='')
+    instagram     = models.CharField(max_length=60, blank=True, default='')
+    cor_primaria  = models.CharField(max_length=7, blank=True, default='#0d6efd')
+
+    def __str__(self):
+        return f'Configuração — {self.tenant.nome}'
+
+    class Meta:
+        verbose_name = 'Configuração do Salão'
+        verbose_name_plural = 'Configurações dos Salões'
+
+
 class Cliente(models.Model):
     tenant = models.ForeignKey(
         Tenant, on_delete=models.CASCADE, related_name='clientes', null=True
@@ -84,6 +116,15 @@ class Cliente(models.Model):
     telefone   = models.CharField(max_length=20)
     endereco   = models.CharField(max_length=60)
     bloqueado  = models.BooleanField(default=False)
+
+    @property
+    def nome_exibicao(self):
+        """Retorna o nome do cliente sem o sufixo __slug do tenant."""
+        username = self.id_usuario.username
+        return username.split('__')[0] if '__' in username else username
+
+    def __str__(self):
+        return self.nome_exibicao
 
 
 
@@ -160,8 +201,8 @@ class Agendamento(models.Model):
         if self.is_manual:
             return self.nome_manual or '—'
         if self.cliente:
-            return self.cliente.id_usuario.get_full_name() or self.cliente.id_usuario.username
-        return '—'
+            return self.cliente.nome_exibicao
+        return self.nome_manual or "—"
 
     @property
     def telefone_cliente(self):

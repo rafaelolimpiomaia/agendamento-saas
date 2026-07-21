@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Cliente, Agendamento, Servico, NotificacaoExclusao
-from .forms import AgendamentoForm, IdentificarUsuarioForm , RedefinirSenhaForm, AgendamentoManualForm
+from .models import Cliente, Agendamento, Servico, NotificacaoExclusao, ConfiguracaoSalao
+from .forms import AgendamentoForm, IdentificarUsuarioForm , RedefinirSenhaForm, AgendamentoManualForm, ConfiguracaoSalaoForm
 from datetime import datetime, timedelta, date
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
@@ -396,6 +396,38 @@ def relatorio_31_dias(request, tenant_slug=None):
         "taxa_ausencia": round(taxa_ausencia, 1)
     })
 
+@admin_do_tenant_required
+def personalizar_salao(request, tenant_slug=None):
+    config, _ = ConfiguracaoSalao.objects.get_or_create(tenant=request.tenant)
+ 
+    if request.method == 'POST':
+        form = ConfiguracaoSalaoForm(request.POST)
+        if form.is_valid():
+            config.nome_exibicao = form.cleaned_data['nome_exibicao']
+            config.tipo_negocio  = form.cleaned_data['tipo_negocio']
+            config.telefone      = form.cleaned_data['telefone']
+            config.publico       = form.cleaned_data['publico']
+            config.endereco      = form.cleaned_data['endereco']
+            config.instagram     = form.cleaned_data['instagram']
+            config.cor_primaria  = form.cleaned_data['cor_primaria'] or '#0d6efd'
+            config.save()
+            messages.success(request, 'Configurações salvas com sucesso!')
+            return redirect('personalizar_salao', tenant_slug=request.tenant.slug)
+    else:
+        form = ConfiguracaoSalaoForm(initial={
+            'nome_exibicao': config.nome_exibicao,
+            'tipo_negocio':  config.tipo_negocio,
+            'telefone':      config.telefone,
+            'publico':       config.publico,
+            'endereco':      config.endereco,
+            'instagram':     config.instagram,
+            'cor_primaria':  config.cor_primaria,
+        })
+
+    return render(request, 'admin/personalizar_salao.html', {
+        'form': form,
+        'config': config,
+    })
 
 @admin_do_tenant_required
 def painel_admin(request, tenant_slug=None):
@@ -929,18 +961,21 @@ def agendamento_manual(request, tenant_slug=None):
 
 def register(request, tenant_slug=None):
     if request.method == "POST":
-        username = request.POST.get("username")
-        telefone = request.POST.get("telefone")
-        password = request.POST.get("password")
+        username    = request.POST.get("username", "").strip()
+        telefone    = request.POST.get("telefone", "").strip()
+        password    = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
         if password != confirm_password:
             return render(request, 'clients/register.html', {'erro': 'As senhas não coincidem!'})
 
-        if User.objects.filter(username=username).exists():
+        # Backend concatena o slug — usuário só digita o nome
+        username_unico = f"{username}__{request.tenant.slug}"
+
+        if User.objects.filter(username=username_unico).exists():
             return render(request, 'clients/register.html', {'erro': 'Usuário já existe!'})
 
-        user = User.objects.create_user(username=username, password=password)
+        user = User.objects.create_user(username=username_unico, password=password)
 
         cliente, _ = Cliente.objects.get_or_create(
             id_usuario=user,
@@ -948,8 +983,6 @@ def register(request, tenant_slug=None):
         )
         cliente.telefone = telefone
         cliente.save()
-        print("TENANT SLUG:", tenant_slug)
-        print("REQUEST TENANT:", request.tenant)
 
         return redirect('login', tenant_slug=request.tenant.slug)
 
@@ -958,23 +991,26 @@ def register(request, tenant_slug=None):
 
 def login_view(request, tenant_slug=None):
     if request.method == "POST":
-        username = request.POST.get("username")
+        username = request.POST.get("username", "").strip()
         password = request.POST.get("password")
 
-        user = authenticate(request, username=username, password=password)
+        # Backend monta o username completo
+        username_unico = f"{username}__{request.tenant.slug}"
+
+        user = authenticate(request, username=username_unico, password=password)
 
         if user:
             login(request, user)
-
             if user.is_staff:
                 return redirect('painel_admin', tenant_slug=request.tenant.slug)
             else:
                 return redirect('home', tenant_slug=request.tenant.slug)
 
-        return render(request, 'clients/login.html', {'erro': 'Login inválido! Verifique os dados da conta ou Crie uma!'})
+        return render(request, 'clients/login.html', {
+            'erro': 'Login inválido! Verifique os dados da conta ou crie uma!'
+        })
 
     return render(request, 'clients/login.html')
-
 
 def logout_view(request, tenant_slug=None):
     slug = request.tenant.slug
@@ -986,10 +1022,12 @@ def esqueci_senha(request, tenant_slug=None):
     form = IdentificarUsuarioForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        nome = form.cleaned_data["nome"]
+        nome     = form.cleaned_data["nome"]
         telefone = form.cleaned_data["telefone"]
 
-        usuario = User.objects.filter(username__iexact=nome).first()
+        # Backend monta o username completo
+        username_unico = f"{nome}__{request.tenant.slug}"
+        usuario = User.objects.filter(username__iexact=username_unico).first()
 
         def apenas_digitos(valor):
             return re.sub(r'\D', '', valor or '')
@@ -1004,14 +1042,14 @@ def esqueci_senha(request, tenant_slug=None):
             form.add_error(None, "Dados não encontrados. Verifique nome e telefone.")
             return render(request, "clients/esqueci_senha.html", {"form": form})
 
-        request.session["redefinir_nome"] = usuario.username
+        request.session["redefinir_nome"] = username_unico  # salva o username completo
         return redirect("redefinir_senha", tenant_slug=request.tenant.slug)
 
     return render(request, "clients/esqueci_senha.html", {"form": form})
 
 
 def redefinir_senha(request, tenant_slug=None):
-    nome = request.session.get("redefinir_nome")
+    nome = request.session.get("redefinir_nome")  # já vem com o slug
 
     if not nome:
         messages.error(request, "Sessão expirada. Comece novamente.")
@@ -1027,12 +1065,18 @@ def redefinir_senha(request, tenant_slug=None):
             usuario.set_password(nova_senha)
             usuario.save()
             del request.session["redefinir_nome"]
-            messages.success(request, "Senha redefinida com sucesso! Pressione o botão 'Voltar para o login' e entre com sua nova senha!")
+            messages.success(request, "Senha redefinida com sucesso! Entre com sua nova senha.")
         else:
             messages.error(request, "Usuário não encontrado.")
             return redirect("esqueci_senha", tenant_slug=request.tenant.slug)
 
-    return render(request, "clients/redefinir_senha.html", {"form": form, "nome": nome})
+    # Exibe o nome sem o sufixo do tenant para o usuário
+    nome_exibicao = nome.split('__')[0] if '__' in nome else nome
+
+    return render(request, "clients/redefinir_senha.html", {
+        "form": form,
+        "nome": nome_exibicao,
+    })
 
 
 @login_required

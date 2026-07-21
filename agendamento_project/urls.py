@@ -20,12 +20,11 @@ from django.urls import path, include
 import agendamento.views_public as public_views
 
 urlpatterns = [
-    # Rotas públicas (sem tenant)
     path('', public_views.landing, name='landing'),
     path('cadastro/', public_views.cadastro_salao, name='cadastro_salao'),
-    path('admin/', admin.site.urls),
-
     path('entrar/', public_views.login_proprietario, name='login_proprietario'),
-    # Rotas do salão — prefixadas pelo slug
+    path('termos/', public_views.termos, name='termos'),
+    path('privacidade/', public_views.privacidade, name='privacidade'),
+    path('admin/', admin.site.urls),
     path('<slug:tenant_slug>/', include('agendamento.urls')),
 ]

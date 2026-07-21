@@ -526,10 +526,10 @@ body {
                         <td>
                             <div class="user-cell">
                                 <div class="avatar {% if cliente.bloqueado %}bloqueado-avatar{% endif %}">
-                                    {{ user.username|slice:":1"|upper }}
+                                    {{ cliente.nome_exibicao|slice:":1"|upper }}
                                 </div>
                                 <div>
-                                    <div class="user-name">{{ user.username }}</div>
+                                    <div class="user-name">{{ cliente.nome_exibicao }}</div>
                                     <div class="user-since">
                                         {% if user.date_joined %}
                                             Desde {{ user.date_joined|date:"d/m/Y" }}
@@ -574,7 +574,7 @@ body {
                                     <!-- Desbloquear -->
                                     <button
                                         class="btn-action btn-desbloquear"
-                                        onclick="abrirModalDesbloquear('{{ user.id }}', '{{ user.username }}')"
+                                        onclick="abrirModalDesbloquear('{{ user.id }}', '{{ cliente.nome_exibicao }}')"
                                         title="Desbloquear cliente">
                                         <i class="bi bi-unlock-fill"></i> Desbloquear
                                     </button>
@@ -582,7 +582,7 @@ body {
                                     <!-- Bloquear -->
                                     <button
                                         class="btn-action btn-bloquear"
-                                        onclick="abrirModalBloquear('{{ user.id }}', '{{ user.username }}')"
+                                        onclick="abrirModalBloquear('{{ user.id }}', '{{ cliente.nome_exibicao }}')"
                                         title="Bloquear cliente">
                                         <i class="bi bi-lock-fill"></i> Bloquear
                                     </button>

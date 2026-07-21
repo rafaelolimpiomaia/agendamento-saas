@@ -7,7 +7,11 @@
 
 body {
     min-height: 100vh;
-    background: linear-gradient(135deg, #6e6e6e, #eef1f4);
+    background: linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--cor-primaria) 10%, white),
+            color-mix(in srgb, var(--cor-primaria) 3%, white)
+        );
 }
 
 .modal{
@@ -173,14 +177,15 @@ body {
     width: 95px;
     height: 95px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+    background: linear-gradient(135deg, var(--cor-primaria), color-mix(in srgb, var(--cor-primaria) 85%, black));
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 40px;
     margin: 0 auto 15px;
-    box-shadow: 0 8px 25px rgba(13,110,253,0.3);
+    box-shadow: 0 8px 25px color-mix(in srgb, var(--cor-primaria) 30%, transparent);
+
 }
 
 
@@ -212,7 +217,7 @@ body {
 }
 
 .perfil-item i {
-    color: #0d6efd;
+    color: var(--cor-primaria);
     font-size: 1.1rem;
 }
 
@@ -288,7 +293,7 @@ body {
         </div>
 
         <div class="perfil-nome">
-            {{ request.user.username }}
+            {{ request.user.username|cut:"__"|cut:tenant_slug }}
         </div>
 
         

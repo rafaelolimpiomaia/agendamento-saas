@@ -1,0 +1,436 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Personalizar — {{ tenant.nome }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: #d9d9d9;
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .page-wrapper { min-height: 100vh; padding: 16px; }
+
+    .main-card {
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto;
+        background: #f8f8f8;
+        border-radius: 24px;
+        padding: 28px 24px;
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+
+    .page-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .page-title i { color: #0d6efd; }
+
+    .btn-back {
+        border-radius: 12px;
+        font-weight: 600;
+        padding: 10px 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .section-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #0d6efd;
+        margin-bottom: 14px;
+        margin-top: 28px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-label::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e7f1ff;
+    }
+
+    .section-label:first-of-type { margin-top: 0; }
+
+    .form-group { margin-bottom: 18px; }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-hint {
+        font-size: 0.78rem;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 12px;
+        border: 1.5px solid #e5e7eb;
+        padding: 11px 14px;
+        font-size: 0.92rem;
+        color: #111827;
+        width: 100%;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        background: #fff;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+        outline: none;
+    }
+
+    .cor-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .cor-input {
+        width: 56px;
+        height: 48px;
+        border-radius: 12px;
+        border: 1.5px solid #e5e7eb;
+        padding: 4px;
+        cursor: pointer;
+        background: #fff;
+    }
+
+    .cor-hex {
+        flex: 1;
+        border-radius: 12px;
+        border: 1.5px solid #e5e7eb;
+        padding: 11px 14px;
+        font-size: 0.92rem;
+        font-family: monospace;
+        color: #111827;
+        background: #fff;
+    }
+
+    .cor-hex:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+        outline: none;
+    }
+
+    .cor-preview {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        border: 1.5px solid #e5e7eb;
+        flex-shrink: 0;
+        transition: background 0.2s;
+    }
+
+    .preview-card {
+        background: #fff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 8px;
+    }
+
+    .preview-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6b7280;
+        margin-bottom: 12px;
+    }
+
+    .preview-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.88rem;
+        border: none;
+        cursor: default;
+    }
+
+    .btn-salvar {
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        width: 100%;
+        margin-top: 28px;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.1s;
+        box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-salvar:hover { opacity: 0.92; transform: translateY(-1px); }
+
+    .alert-success {
+        background: #d1fae5;
+        border: 1px solid #6ee7b7;
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: #065f46;
+        font-size: 0.88rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    @media (max-width: 576px) {
+        .page-wrapper { padding: 12px; }
+        .main-card { padding: 18px 14px; border-radius: 20px; }
+        .page-header { flex-direction: column; align-items: stretch; }
+        .page-title { font-size: 1.25rem; }
+        .btn-back { width: 100%; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="main-card">
+
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="bi bi-sliders"></i> Personalizar Salão
+            </h1>
+            <a href="{% url 'painel_admin' tenant_slug=tenant_slug %}" class="btn btn-outline-secondary btn-back">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+
+        {% for message in messages %}
+            <div class="alert-success">
+                <i class="bi bi-check-circle-fill"></i>
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- ── SEÇÃO 1: ESTABELECIMENTO ── -->
+            <div class="section-label">
+                <i class="bi bi-shop"></i> Estabelecimento
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_nome_exibicao">Nome de exibição</label>
+                <input
+                    type="text"
+                    id="id_nome_exibicao"
+                    name="nome_exibicao"
+                    class="form-control"
+                    value="{{ form.nome_exibicao.value|default:'' }}"
+                    placeholder="Ex: Salão da Maria, Barbearia do João..."
+                >
+                <p class="form-hint">Nome exibido nas páginas públicas — pode ser diferente do nome de cadastro.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_tipo_negocio">Tipo de estabelecimento</label>
+                <select id="id_tipo_negocio" name="tipo_negocio" class="form-select">
+                    <option value="">— Selecione —</option>
+                    <option value="salao"      {% if form.tipo_negocio.value == 'salao' %}selected{% endif %}>Salão de Beleza</option>
+                    <option value="barbearia"  {% if form.tipo_negocio.value == 'barbearia' %}selected{% endif %}>Barbearia</option>
+                    <option value="studio"     {% if form.tipo_negocio.value == 'studio' %}selected{% endif %}>Studio de Unhas</option>
+                    <option value="esmalteria" {% if form.tipo_negocio.value == 'esmalteria' %}selected{% endif %}>Esmalteria</option>
+                    <option value="outro"      {% if form.tipo_negocio.value == 'outro' %}selected{% endif %}>Outro</option>
+                </select>
+                <p class="form-hint">Exibido nas páginas de sobre e suporte.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_telefone_config">Telefone para contato</label>
+                <input
+                    type="text"
+                    id="id_telefone_config"
+                    name="telefone"
+                    class="form-control"
+                    value="{{ form.telefone.value|default:'' }}"
+                    placeholder="(83) 90000-0000"
+                >
+                <p class="form-hint">Exibido nas páginas públicas para contato dos clientes.</p>
+            </div>
+
+            <!-- ── SEÇÃO 2: PÚBLICO ── -->
+            <div class="section-label">
+                <i class="bi bi-people"></i> Público
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_publico">Público atendido</label>
+                <select id="id_publico" name="publico" class="form-select">
+                    <option value="homens"   {% if form.publico.value == 'homens' %}selected{% endif %}>Homens</option>
+                    <option value="mulheres" {% if form.publico.value == 'mulheres' %}selected{% endif %}>Mulheres</option>
+                    <option value="ambos"    {% if form.publico.value == 'ambos' %}selected{% endif %}>Homens e Mulheres</option>
+                </select>
+                <p class="form-hint">Exibido nas páginas públicas do salão.</p>
+            </div>
+
+            <!-- ── SEÇÃO 3: LOCALIZAÇÃO ── -->
+            <div class="section-label">
+                <i class="bi bi-geo-alt"></i> Localização
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_endereco">Endereço</label>
+                <input
+                    type="text"
+                    id="id_endereco"
+                    name="endereco"
+                    class="form-control"
+                    value="{{ form.endereco.value|default:'' }}"
+                    placeholder="Ex: Rua das Flores, 123 — Centro, João Pessoa - PB"
+                >
+                <p class="form-hint">Aparece na página de suporte e sobre.</p>
+            </div>
+
+            <!-- ── SEÇÃO 4: REDES SOCIAIS ── -->
+            <div class="section-label">
+                <i class="bi bi-instagram"></i> Redes Sociais
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_instagram">Instagram</label>
+                <div style="position:relative;">
+                    <input
+                        type="text"
+                        id="id_instagram"
+                        name="instagram"
+                        class="form-control"
+                        value="{{ form.instagram.value|default:'' }}"
+                        placeholder="@seu.perfil"
+                        style="padding-left: 38px;"
+                    >
+                    <i class="bi bi-at" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6b7280;"></i>
+                </div>
+                <p class="form-hint">Link gerado automaticamente: instagram.com/seu.perfil</p>
+            </div>
+
+            <!-- ── SEÇÃO 5: IDENTIDADE VISUAL ── -->
+            <div class="section-label">
+                <i class="bi bi-palette"></i> Identidade Visual
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Cor principal do site</label>
+                <div class="cor-wrapper">
+                    <input
+                        type="color"
+                        id="corPicker"
+                        class="cor-input"
+                        value="{{ form.cor_primaria.value|default:'#0d6efd' }}"
+                    >
+                    <input
+                        type="text"
+                        id="corHex"
+                        name="cor_primaria"
+                        class="cor-hex"
+                        value="{{ form.cor_primaria.value|default:'#0d6efd' }}"
+                        maxlength="7"
+                        placeholder="#0d6efd"
+                    >
+                    <div class="cor-preview" id="corPreview"
+                        style="background: {{ form.cor_primaria.value|default:'#0d6efd' }};"></div>
+                </div>
+                <p class="form-hint">Afeta botões, links e destaques nas páginas dos clientes.</p>
+
+                <div class="preview-card" style="margin-top:12px;">
+                    <div class="preview-title">Pré-visualização</div>
+                    <button class="preview-btn" id="previewBtn"
+                        style="background: {{ form.cor_primaria.value|default:'#0d6efd' }};">
+                        <i class="bi bi-calendar-check"></i>
+                        Agendar agora
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-salvar">
+                <i class="bi bi-check-circle-fill"></i>
+                Salvar configurações
+            </button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const corPicker  = document.getElementById('corPicker');
+    const corHex     = document.getElementById('corHex');
+    const corPreview = document.getElementById('corPreview');
+    const previewBtn = document.getElementById('previewBtn');
+
+    function atualizarCor(hex) {
+        corPreview.style.background = hex;
+        previewBtn.style.background = hex;
+    }
+
+    corPicker.addEventListener('input', function () {
+        corHex.value = this.value;
+        atualizarCor(this.value);
+    });
+
+    corHex.addEventListener('input', function () {
+        const hex = this.value;
+        if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+            corPicker.value = hex;
+            atualizarCor(hex);
+        }
+    });
+
+    // Máscara telefone
+    const telInput = document.getElementById('id_telefone_config');
+    if (telInput) {
+        telInput.addEventListener('input', function (e) {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length > 11) v = v.slice(0, 11);
+            if (v.length > 6) {
+                v = v.replace(/(\d{2})(\d{5})(\d+)/, '($1) $2-$3');
+            } else if (v.length > 2) {
+                v = v.replace(/(\d{2})(\d+)/, '($1) $2');
+            }
+            e.target.value = v;
+        });
+    }
+</script>
+{% endblock %}

@@ -230,12 +230,12 @@
 
                             {% if ag.status == 'pendente' %}
                                 <div class="status-actions">
-                                    <a href="{% url 'atualizar_status' ag.id 'presente' tenant_slug=tenant_slug %}" class="btn btn-presente">
+                                    <a href="{% url 'atualizar_status' id=ag.id status='presente' tenant_slug=tenant_slug %}" class="btn btn-presente">
                                         <i class="bi bi-check-circle"></i>
                                         Presente
                                     </a>
 
-                                    <a href="{% url 'atualizar_status' ag.id 'ausente' tenant_slug=tenant_slug %}" class="btn btn-ausente">
+                                    <a href="{% url 'atualizar_status' id=ag.id status='ausente' tenant_slug=tenant_slug %}" class="btn btn-ausente">
                                         <i class="bi bi-x-circle"></i>
                                         Ausente
                                     </a>
