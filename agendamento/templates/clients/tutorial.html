@@ -42,7 +42,11 @@
 
             body {
                 font-family: "Nunito", sans-serif;
-                background-color: var(--gray-bg);
+                background: linear-gradient(
+                    135deg,
+                    color-mix(in srgb, var(--cor-primaria) 10%, white),
+                    color-mix(in srgb, var(--cor-primaria) 3%, white)
+                );
                 color: var(--gray-800);
             }
 
@@ -658,7 +662,7 @@
                 <!-- Botão principal -->
                 <!-- Altere o href para o caminho real da sua página de login -->
                 <div class="px-3 mt-3">
-                    <a href="{% url 'login' %}" class="btn-tutorial-primary w-100" id="btn-login">
+                    <a href="{% url 'login' tenant_slug=tenant_slug %}" class="btn-tutorial-primary w-100" id="btn-login">
                         <svg viewBox="0 0 24 24">
                             <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
                             <polyline points="10 17 15 12 10 7" />
@@ -706,7 +710,7 @@
                 const veioPeloBotao = new URLSearchParams(window.location.search).get('ajuda');
 
                 if (jaViu && !veioPeloBotao) {
-                    window.location.href = "{% url 'login' %}";
+                    window.location.href = "{% url 'login' tenant_slug=tenant_slug %}";
                 }
             });
 
@@ -715,7 +719,7 @@
                 e.preventDefault(); // impede o href de agir sozinho
                 markAsSeen();       // salva no localStorage
                 // no JavaScript
-                window.location.href = "{% url 'login' %}"; // redireciona via JS
+                window.location.href = "{% url 'login' tenant_slug=tenant_slug %}"; // redireciona via JS
             });
 
             // Marca o tutorial como visto no localStorage

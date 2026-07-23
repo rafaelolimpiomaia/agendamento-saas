@@ -6,7 +6,11 @@
 <style>
     body {
         min-height: 100vh;
-        background: linear-gradient(135deg, #807f7f, #f2f5f7);
+        background: linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--cor-primaria) 10%, white),
+            color-mix(in srgb, var(--cor-primaria) 3%, white)
+        );
         font-family: Arial, sans-serif;
     }
 
@@ -29,7 +33,7 @@
     .brand-icon {
         width: 70px;
         height: 70px;
-        background-color: #0d6efd;
+        background-color: var(--cor-primaria);
         color: white;
         border-radius: 50%;
         display: flex;
@@ -181,7 +185,7 @@
     }
 
     .footer-card a:hover i {
-        color: #0d6efd;
+        color: var(--cor-primaria);
     }
 
     @media (max-width: 576px) {
@@ -216,12 +220,12 @@
                 </div>
 
                 <div class="welcome-box">
-                    <h2>Bem-vindo(a), {{ request.user.username }}</h2>
+                    <h2>Bem-vindo(a), {{ request.user.username|cut:"__"|cut:tenant_slug }}</h2>
                     <p>Escolha uma opção abaixo para continuar</p>
                 </div>
 
                 <div class="menu-group">
-                    <a href="/agendar/" class="btn btn-primary menu-btn">
+                    <a href="{% url 'escolher_servico' tenant_slug=tenant_slug %}" class="btn btn-primary menu-btn">
                         <i class="bi bi-calendar-plus"></i>
                         Agendar horário
                     </a>
@@ -238,7 +242,7 @@
                             </div>
                             <div>
                                 <p class="nav-item-title">Sobre</p>
-                                <p class="nav-item-desc">Informações gerais do serviço e o WhatsApp da proprietária para eventuais dúvidas.</p>
+                                <p class="nav-item-desc">Informações gerais do serviço e o WhatsApp do proprietário para eventuais dúvidas.</p>
                             </div>
                         </div>
 
@@ -248,7 +252,7 @@
                             </div>
                             <div>
                                 <p class="nav-item-title">Suporte</p>
-                                <p class="nav-item-desc">Contato do suporte técnico e WhatsApp da proprietária para dúvidas ou problemas.</p>
+                                <p class="nav-item-desc">Contato do suporte técnico e WhatsApp do proprietário para dúvidas ou problemas.</p>
                             </div>
                         </div>
 
@@ -268,28 +272,28 @@
                     <div class="row text-center row-cols-2 row-cols-sm-4">
 
                         <div class="col">
-                            <a href="{% url 'perfil' %}" class="text-dark text-decoration-none">
+                            <a href="{% url 'perfil' tenant_slug=tenant_slug %}" class="text-dark text-decoration-none">
                                 <i class="bi bi-person-circle footer-icon"></i>
                                 <small>Perfil</small>
                             </a>
                         </div>
 
                         <div class="col">
-                            <a href="{% url 'sobre' %}" class="text-dark text-decoration-none">
+                            <a href="{% url 'sobre' tenant_slug=tenant_slug %}" class="text-dark text-decoration-none">
                                 <i class="bi bi-info-circle footer-icon"></i>
                                 <small>Sobre</small>
                             </a>
                         </div>
 
                         <div class="col">
-                            <a href="{% url 'listar_agendamentos' %}" class="text-dark text-decoration-none">
+                            <a href="{% url 'listar_agendamentos' tenant_slug=tenant_slug %}" class="text-dark text-decoration-none">
                                 <i class="bi bi-calendar-check footer-icon"></i>
                                 <small>Agendamentos</small>
                             </a>
                         </div>
 
                         <div class="col">
-                            <a href="{% url 'suporte' %}" class="text-dark text-decoration-none">
+                            <a href="{% url 'suporte' tenant_slug=tenant_slug %}" class="text-dark text-decoration-none">
                                 <i class="bi bi-headset footer-icon"></i>
                                 <small>Suporte</small>
                             </a>
@@ -489,7 +493,7 @@
     }
 
     function marcarLida(id, callback) {
-        fetch(`/notificacao/lida/${id}/`, {
+        fetch(`/{{ tenant_slug }}/notificacao/lida/${id}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}',

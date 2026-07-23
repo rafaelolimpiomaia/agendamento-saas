@@ -471,7 +471,7 @@ body {
             <h1 class="title"><i class="bi bi-people-fill"></i> Clientes</h1>
             <p class="subtitle">Gerencie os clientes cadastrados no sistema.</p>
         </div>
-        <a href="{% url 'painel_admin' %}" class="back-btn">
+        <a href="{% url 'painel_admin' tenant_slug=tenant_slug %}" class="back-btn">
             <i class="bi bi-arrow-left"></i> Voltar ao painel
         </a>
     </div>
@@ -494,7 +494,7 @@ body {
             Buscar
         </button>
         {% if q %}
-            <a href="{% url 'listar_clientes' %}" class="clear-btn">
+            <a href="{% url 'listar_clientes' tenant_slug=tenant_slug %}" class="clear-btn">
                 <i class="bi bi-x"></i> Limpar
             </a>
         {% endif %}
@@ -526,10 +526,10 @@ body {
                         <td>
                             <div class="user-cell">
                                 <div class="avatar {% if cliente.bloqueado %}bloqueado-avatar{% endif %}">
-                                    {{ user.username|slice:":1"|upper }}
+                                    {{ cliente.nome_exibicao|slice:":1"|upper }}
                                 </div>
                                 <div>
-                                    <div class="user-name">{{ user.username }}</div>
+                                    <div class="user-name">{{ cliente.nome_exibicao }}</div>
                                     <div class="user-since">
                                         {% if user.date_joined %}
                                             Desde {{ user.date_joined|date:"d/m/Y" }}
@@ -574,7 +574,7 @@ body {
                                     <!-- Desbloquear -->
                                     <button
                                         class="btn-action btn-desbloquear"
-                                        onclick="abrirModalDesbloquear('{{ user.id }}', '{{ user.username }}')"
+                                        onclick="abrirModalDesbloquear('{{ user.id }}', '{{ cliente.nome_exibicao }}')"
                                         title="Desbloquear cliente">
                                         <i class="bi bi-unlock-fill"></i> Desbloquear
                                     </button>
@@ -582,7 +582,7 @@ body {
                                     <!-- Bloquear -->
                                     <button
                                         class="btn-action btn-bloquear"
-                                        onclick="abrirModalBloquear('{{ user.id }}', '{{ user.username }}')"
+                                        onclick="abrirModalBloquear('{{ user.id }}', '{{ cliente.nome_exibicao }}')"
                                         title="Bloquear cliente">
                                         <i class="bi bi-lock-fill"></i> Bloquear
                                     </button>
@@ -590,7 +590,7 @@ body {
 
                                 <!-- Excluir -->
                                 <a
-                                    href="{% url 'excluir_cliente' user.id %}"
+                                    href="{% url 'excluir_cliente' user_id=user.id tenant_slug=tenant_slug %}"
                                     class="btn-action btn-excluir"
                                     title="Excluir conta">
                                     <i class="bi bi-trash-fill"></i> Excluir
@@ -666,13 +666,13 @@ body {
 <script>
 function abrirModalBloquear(userId, nome) {
     document.getElementById('nomeBloquear').textContent = nome;
-    document.getElementById('formBloquear').action = '/painel/clientes/bloquear/' + userId + '/';
+    document.getElementById('formBloquear').action = '/{{ tenant_slug }}/painel/clientes/bloquear/' + userId + '/';
     document.getElementById('modalBloquear').classList.add('show');
 }
 
 function abrirModalDesbloquear(userId, nome) {
     document.getElementById('nomeDesbloquear').textContent = nome;
-    document.getElementById('formDesbloquear').action = '/painel/clientes/desbloquear/' + userId + '/';
+    document.getElementById('formDesbloquear').action = '/{{ tenant_slug }}/painel/clientes/desbloquear/' + userId + '/';
     document.getElementById('modalDesbloquear').classList.add('show');
 }
 

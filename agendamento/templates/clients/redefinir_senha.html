@@ -116,21 +116,23 @@ body{
 }
 
 /* ===== BOTÃO PRINCIPAL ===== */
-.btn-submit{
-    width:100%;
-    background:#2f6fe4;
-    color:#fff;
-    border:none;
-    padding:14px;
-    border-radius:12px;
-    font-size:16px;
-    font-weight:600;
-    cursor:pointer;
-    transition:.2s;
+.btn-submit {
+    width: 100%;
+    background: #2f6fe4 !important;
+    border-color: #2f6fe4 !important;
+    color: #fff !important;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .2s;
 }
 
-.btn-submit:hover{
-    background:#245bd1;
+.btn-submit:hover {
+    background: #255cc0 !important;
+    border-color: #255cc0 !important;
 }
 
 /* ===== BOTÃO VOLTAR ===== */
@@ -268,14 +270,14 @@ body{
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">
+        <button type="submit" class="btn btn-primary w-100 btn-submit"">
             Salvar nova senha
         </button>
 
     </form>
 
     <!-- Voltar login -->
-    <a href="{% url 'login' %}" class="btn-back">
+    <a href="{% url 'login' tenant_slug=tenant_slug %}" class="btn-back">
         Voltar para o login
     </a>
 </div>

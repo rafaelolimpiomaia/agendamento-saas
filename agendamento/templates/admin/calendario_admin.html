@@ -657,29 +657,29 @@ body {
 
         <div class="section-title">Principal</div>
         <div class="menu">
-            <a href="{% url 'painel_admin' %}"><i class="bi bi-house"></i> Home</a>
+            <a href="{% url 'painel_admin' tenant_slug=tenant_slug %}"><i class="bi bi-house"></i> Home</a>
         </div>
 
         <div class="section-title">Gestão</div>
         <div class="menu">
-            <a href="{% url 'listar_servicos' %}"><i class="bi bi-card-text"></i> Gerenciar serviços</a>
-            <a href="{% url 'listar_clientes' %}"><i class="bi bi-people-fill"></i> Lista clientes</a>
-            <a href="{% url 'agendamentos_hoje' %}"><i class="bi bi-calendar-day"></i> Agendamentos de hoje</a>
-            <a href="{% url 'proximos_agendamentos' %}"><i class="bi bi-calendar-week"></i> Agenda</a>
-            <a href="{% url 'calendario_admin' %}" class="active"><i class="bi bi-calendar3"></i> Calendário</a>
-            <a href="{% url 'gerenciar_horarios' %}"><i class="bi bi-clock"></i> Gerenciar horários</a>
-            <a href="{% url 'agendamento_manual' %}"><i class="bi bi-pencil-square"></i> Agendamento manual</a>
+            <a href="{% url 'listar_servicos' tenant_slug=tenant_slug %}"><i class="bi bi-card-text"></i> Gerenciar serviços</a>
+            <a href="{% url 'listar_clientes' tenant_slug=tenant_slug %}"><i class="bi bi-people-fill"></i> Lista clientes</a>
+            <a href="{% url 'agendamentos_hoje' tenant_slug=tenant_slug %}"><i class="bi bi-calendar-day"></i> Agendamentos de hoje</a>
+            <a href="{% url 'proximos_agendamentos' tenant_slug=tenant_slug %}"><i class="bi bi-calendar-week"></i> Agenda</a>
+            <a href="{% url 'calendario_admin' tenant_slug=tenant_slug %}" class="active"><i class="bi bi-calendar3"></i> Calendário</a>
+            <a href="{% url 'gerenciar_horarios' tenant_slug=tenant_slug %}"><i class="bi bi-clock"></i> Gerenciar horários</a>
+            <a href="{% url 'agendamento_manual' tenant_slug=tenant_slug %}"><i class="bi bi-pencil-square"></i> Agendamento manual</a>
         </div>
 
         <div class="section-title">Relatórios</div>
         <div class="menu">
-            <a href="{% url 'relatorio_31_dias' %}"><i class="bi bi-bar-chart"></i> Dashboard financeiro</a>
+            <a href="{% url 'relatorio_31_dias' tenant_slug=tenant_slug %}"><i class="bi bi-bar-chart"></i> Dashboard financeiro</a>
         </div>
 
         <div class="section-title">Conta</div>
         <div class="menu">
-            <a href="{% url 'perfil' %}"><i class="bi bi-person-circle"></i> Perfil</a>
-            <a href="{% url 'logout' %}" class="btn-sair"><i class="bi bi-box-arrow-right"></i> Sair</a>
+            <a href="{% url 'perfil' tenant_slug=tenant_slug %}"><i class="bi bi-person-circle"></i> Perfil</a>
+            <a href="{% url 'logout' tenant_slug=tenant_slug %}" class="btn-sair"><i class="bi bi-box-arrow-right"></i> Sair</a>
         </div>
     </div>
 
@@ -756,7 +756,7 @@ body {
    Calendário Administrativo — JavaScript
    ═══════════════════════════════════════════════════════════════ */
 
-const API_URL      = "{% url 'api_calendario_dados' %}";
+const API_URL      = "{% url 'api_calendario_dados' tenant_slug=tenant_slug %}";
 const HOJE_ISO     = "{{ hoje }}";   // ex: "2025-06-08"
 
 const MESES_PT = [

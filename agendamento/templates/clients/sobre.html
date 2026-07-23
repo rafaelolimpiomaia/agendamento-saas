@@ -6,18 +6,22 @@
 <style>
     body {
         min-height: 100vh;
-        background: linear-gradient(135deg, #807f7f, #f2f5f7);
+        background: linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--cor-primaria) 10%, white),
+            color-mix(in srgb, var(--cor-primaria) 3%, white)
+        );
     }
-
+ 
     .sobre-page {
         padding: 32px 12px 48px;
     }
-
+ 
     .sobre-wrapper {
         max-width: 1100px;
         margin: 0 auto;
     }
-
+ 
     .topbar-sobre {
         display: flex;
         justify-content: space-between;
@@ -25,38 +29,38 @@
         gap: 16px;
         margin-bottom: 24px;
     }
-
+ 
     .topbar-title {
         display: flex;
         align-items: center;
         gap: 12px;
         color: #212529;
     }
-
+ 
     .topbar-icon {
         width: 48px;
         height: 48px;
         border-radius: 14px;
-        background: rgba(13, 110, 253, 0.12);
-        color: #0d6efd;
+        background: color-mix(in srgb, var(--cor-primaria) 12%, white);
+        color: var(--cor-primaria);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.35rem;
     }
-
+ 
     .topbar-title h1 {
         margin: 0;
         font-size: 1.9rem;
         font-weight: 700;
     }
-
+ 
     .topbar-title p {
         margin: 2px 0 0;
         color: #6c757d;
         font-size: 0.96rem;
     }
-
+ 
     .btn-voltar {
         background: #6c757d;
         color: #fff;
@@ -71,13 +75,13 @@
         transition: all 0.2s ease;
         border: none;
     }
-
+ 
     .btn-voltar:hover {
         background: #5a6268;
         color: #fff;
         transform: translateY(-1px);
     }
-
+ 
     .hero-sobre {
         background: rgba(255, 255, 255, 0.94);
         border-radius: 24px;
@@ -87,7 +91,7 @@
         position: relative;
         overflow: hidden;
     }
-
+ 
     .hero-sobre::before {
         content: "";
         position: absolute;
@@ -95,30 +99,30 @@
         right: -80px;
         width: 220px;
         height: 220px;
-        background: radial-gradient(circle, rgba(13,110,253,0.14) 0%, rgba(13,110,253,0) 70%);
+        background: radial-gradient(circle, color-mix(in srgb, var(--cor-primaria) 14%, transparent) 0%, transparent 70%);
         pointer-events: none;
     }
-
+ 
     .hero-grid {
         display: grid;
         grid-template-columns: 1.2fr 0.8fr;
         gap: 28px;
         align-items: center;
     }
-
+ 
     .hero-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(13, 110, 253, 0.10);
-        color: #0d6efd;
+        background: color-mix(in srgb, var(--cor-primaria) 10%, white);
+        color: var(--cor-primaria);
         border-radius: 999px;
         padding: 8px 14px;
         font-size: 0.88rem;
         font-weight: 600;
         margin-bottom: 16px;
     }
-
+ 
     .hero-title {
         font-size: 2.25rem;
         font-weight: 800;
@@ -126,7 +130,7 @@
         line-height: 1.1;
         margin-bottom: 14px;
     }
-
+ 
     .hero-text {
         font-size: 1rem;
         color: #5c6670;
@@ -134,13 +138,13 @@
         margin-bottom: 22px;
         max-width: 640px;
     }
-
+ 
     .hero-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
     }
-
+ 
     .btn-acao {
         min-height: 48px;
         border-radius: 14px;
@@ -152,37 +156,37 @@
         text-decoration: none;
         transition: all 0.2s ease;
     }
-
+ 
     .btn-acao:hover {
         transform: translateY(-1px);
     }
-
+ 
     .hero-side {
         display: grid;
         gap: 14px;
     }
-
+ 
     .hero-mini-card {
         background: #f8f9fa;
         border: 1px solid #eef1f4;
         border-radius: 18px;
         padding: 18px;
     }
-
+ 
     .hero-mini-card h3 {
         font-size: 1rem;
         font-weight: 700;
         color: #212529;
         margin-bottom: 8px;
     }
-
+ 
     .hero-mini-card p {
         margin: 0;
         color: #6c757d;
         line-height: 1.6;
         font-size: 0.94rem;
     }
-
+ 
     .section-card {
         background: rgba(255, 255, 255, 0.96);
         border-radius: 22px;
@@ -190,45 +194,45 @@
         box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
         margin-bottom: 22px;
     }
-
+ 
     .section-header {
         display: flex;
         align-items: center;
         gap: 12px;
         margin-bottom: 18px;
     }
-
+ 
     .section-header .icon-box {
         width: 44px;
         height: 44px;
         border-radius: 14px;
-        background: rgba(13, 110, 253, 0.10);
-        color: #0d6efd;
+        background: color-mix(in srgb, var(--cor-primaria) 10%, white);
+        color: var(--cor-primaria);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.2rem;
     }
-
+ 
     .section-header h2 {
         margin: 0;
         font-size: 1.35rem;
         font-weight: 700;
         color: #212529;
     }
-
+ 
     .section-header p {
         margin: 2px 0 0;
         color: #6c757d;
         font-size: 0.94rem;
     }
-
+ 
     .diferenciais-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 16px;
     }
-
+ 
     .diferencial-item {
         background: #f8f9fa;
         border: 1px solid #edf0f3;
@@ -237,39 +241,39 @@
         height: 100%;
         transition: all 0.2s ease;
     }
-
+ 
     .diferencial-item:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 24px rgba(0,0,0,0.07);
     }
-
+ 
     .diferencial-item i {
         font-size: 1.3rem;
-        color: #0d6efd;
+        color: var(--cor-primaria);
         margin-bottom: 10px;
         display: inline-block;
     }
-
+ 
     .diferencial-item h3 {
         font-size: 1rem;
         font-weight: 700;
         margin-bottom: 8px;
         color: #212529;
     }
-
+ 
     .diferencial-item p {
         margin: 0;
         font-size: 0.93rem;
         line-height: 1.6;
         color: #6c757d;
     }
-
+ 
     .info-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 22px;
     }
-
+ 
     .info-box {
         background: #f8f9fa;
         border: 1px solid #edf0f3;
@@ -277,37 +281,37 @@
         padding: 20px;
         height: 100%;
     }
-
+ 
     .info-list {
         display: grid;
         gap: 14px;
     }
-
+ 
     .info-item {
         display: flex;
         gap: 12px;
         align-items: flex-start;
     }
-
+ 
     .info-item i {
         font-size: 1.05rem;
-        color: #0d6efd;
+        color: var(--cor-primaria);
         margin-top: 2px;
     }
-
+ 
     .info-item strong {
         display: block;
         font-size: 0.96rem;
         color: #212529;
         margin-bottom: 2px;
     }
-
+ 
     .info-item span {
         color: #6c757d;
         font-size: 0.94rem;
         line-height: 1.5;
     }
-
+ 
     .mapa-box iframe {
         width: 100%;
         height: 100%;
@@ -315,14 +319,14 @@
         border: 0;
         border-radius: 18px;
     }
-
+ 
     .horarios-card {
         background: #f8f9fa;
         border: 1px solid #edf0f3;
         border-radius: 18px;
         padding: 20px;
     }
-
+ 
     .horarios-header {
         display: flex;
         align-items: center;
@@ -332,19 +336,19 @@
         color: #212529;
         margin-bottom: 14px;
     }
-
+ 
     .horarios-header i {
         width: 38px;
         height: 38px;
         border-radius: 12px;
-        background: rgba(13, 110, 253, 0.12);
-        color: #0d6efd;
+        background: color-mix(in srgb, var(--cor-primaria) 12%, white);
+        color: var(--cor-primaria);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1rem;
     }
-
+ 
     .horario-item {
         display: flex;
         justify-content: space-between;
@@ -354,36 +358,36 @@
         border-bottom: 1px solid #e9ecef;
         font-size: 0.96rem;
     }
-
+ 
     .horario-item:last-child {
         border-bottom: none;
         padding-bottom: 0;
     }
-
+ 
     .horario-item:first-of-type {
         padding-top: 0;
     }
-
+ 
     .horario-item span:first-child {
         color: #212529;
         font-weight: 600;
     }
-
+ 
     .horario-item span:last-child {
         color: #495057;
         font-weight: 700;
     }
-
+ 
     .horario-item.fechado span:last-child {
         color: #dc3545;
     }
-
+ 
     .cta-final {
-        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        background: linear-gradient(135deg, var(--cor-primaria), color-mix(in srgb, var(--cor-primaria) 85%, black));
         color: #fff;
         border-radius: 24px;
         padding: 28px;
-        box-shadow: 0 14px 30px rgba(13, 110, 253, 0.22);
+        box-shadow: 0 14px 30px color-mix(in srgb, var(--cor-primaria) 22%, transparent);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -421,37 +425,13 @@
     }
 
     @media (max-width: 576px) {
-        .sobre-page {
-            padding: 18px 0 32px;
-        }
-
-        .topbar-sobre {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .hero-sobre,
-        .section-card,
-        .cta-final {
-            border-radius: 0;
-        }
-
-        .hero-sobre,
-        .section-card {
-            padding: 22px 18px;
-        }
-
-        .hero-title {
-            font-size: 1.8rem;
-        }
-
-        .topbar-title h1 {
-            font-size: 1.5rem;
-        }
-
-        .btn-voltar {
-            justify-content: center;
-        }
+        .sobre-page { padding: 18px 0 32px; }
+        .topbar-sobre { flex-direction: column; align-items: stretch; }
+        .hero-sobre, .section-card, .cta-final { border-radius: 0; }
+        .hero-sobre, .section-card { padding: 22px 18px; }
+        .hero-title { font-size: 1.8rem; }
+        .topbar-title h1 { font-size: 1.5rem; }
+        .btn-voltar { justify-content: center; }
     }
 </style>
 {% endblock %}
@@ -468,12 +448,12 @@
                         <i class="bi bi-info-circle"></i>
                     </div>
                     <div>
-                        <h1>Sobre a Esmalteria</h1>
+                        <h1>Sobre nossos Serviços</h1>
                         <p>Conheça nossos horários, localização e meios de contato.</p>
                     </div>
                 </div>
     
-                <a href="javascript:history.back()" class="btn-voltar">
+                <a href="{% url 'home' tenant_slug=tenant_slug %}" class="btn-voltar">
                     <i class="bi bi-arrow-left"></i>
                     Voltar
                 </a>
@@ -490,13 +470,14 @@
                     </div>
 
                     <p class="hero-text">
-                        Nossa Esmalteria foi pensada para oferecer uma experiência moderna, prática e confortável.
+                        Nossa(o) {% if config.tipo_negocio %}{{ config.tipo_negocio }}{% endif %}
+                        foi pensada para oferecer uma experiência moderna, prática e confortável.
                         Aqui, você encontra atendimento com horário marcado, ambiente organizado e foco total na qualidade
-                        do serviço, desde o primeiro contato até a finalização de suas unhas.
+                        do serviço, desde o primeiro contato até a finalização do seus serviços.
                     </p>
 
                     <div class="hero-actions">
-                        <a href="{% url 'agendar' %}" class="btn btn-primary btn-acao">
+                        <a href="{% url 'escolher_servico' tenant_slug=tenant_slug %}" class="btn btn-primary btn-acao">
                             <i class="bi bi-calendar-check"></i>
                             Agendar agora
                         </a>
@@ -522,7 +503,9 @@
                     <div class="hero-mini-card">
                         <h3>Para quem atendemos</h3>
                         <p>
-                            Atendemos mulheres que desejam unhas bonitas, bem cuidadas e um atendimento feito com carinho,
+                            Atendemos
+                            {% if config.publico == 'homens' %}homens{% elif config.publico == 'mulheres' %}mulheres{% else %}homens e mulheres{% endif %}
+                            que desejam um serviço de qualidade, atendimento feito com carinho,
                             conforto e atenção aos detalhes. Nosso espaço é pensado para proporcionar uma experiência agradável,
                             com serviços de qualidade e resultados que valorizam sua beleza e autoestima.
                         </p>
@@ -564,62 +547,99 @@
         </section>
 
         <section class="section-card">
-            <div class="section-header">
-                <div class="icon-box">
-                    <i class="bi bi-geo-alt"></i>
-                </div>
-                <div>
-                    <h2>Informações e localização</h2>
-                    <p>Dados essenciais para o cliente encontrar e entrar em contato facilmente.</p>
-                </div>
-            </div>
+    <div class="section-header">
+        <div class="icon-box">
+            <i class="bi bi-geo-alt"></i>
+        </div>
+        <div>
+            <h2>Informações e localização</h2>
+            <p>Dados essenciais para o cliente encontrar e entrar em contato facilmente.</p>
+        </div>
+    </div>
 
-            <div class="info-grid">
-                <div class="info-box">
-                    <div class="info-list">
-                        <div class="info-item">
-                            <i class="bi bi-building"></i>
-                            <div>
-                                <strong>Nome da empresa</strong>
-                                <span>Espaço Wanessa Luiza</span>
-                            </div>
-                        </div>
-
-                        <div class="info-item">
-                            <i class="bi bi-geo-alt"></i>
-                            <div>
-                                <strong>Endereço</strong>
-                                <span>Rua Antonio belarmino de costa, 120 - João Pessoa, PB</span>
-                            </div>
-                        </div>
-
-                        <div class="info-item">
-                            <i class="bi bi-telephone"></i>
-                            <div>
-                                <strong>Telefone</strong>
-                                <span>(83) 98855-3994</span>
-                            </div>
-                        </div>
-
-                        <div class="info-item">
-                            <i class="bi bi-instagram"></i>
-                            <div>
-                                <strong>Instagram</strong>
-                                <span>@wanessaluizanails</span>
-                            </div>
-                        </div>
+    <div class="info-grid">
+        <div class="info-box">
+            <div class="info-list">
+                <div class="info-item">
+                    <i class="bi bi-building"></i>
+                    <div>
+                        <strong>Nome da empresa</strong>
+                        {% if config.nome_exibicao %}
+                            <span>{{ config.nome_exibicao }}</span>
+                        {% else %}
+                            <span style="color:#9ca3af;">Não informado</span>
+                        {% endif %}
                     </div>
                 </div>
 
-                <div class="mapa-box">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3958.4024455079766!2d-34.854005025174835!3d-7.194838192810472!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7acc2032ad988f1%3A0x3052e36092d346db!2sR.%20Ant%C3%B4nio%20Belarminio%20da%20Costa%2C%20120%20-%20Valentina%2C%20Jo%C3%A3o%20Pessoa%20-%20PB!5e0!3m2!1spt-BR!2sbr!4v1778188914881!5m2!1spt-BR!2sbr"
-                        loading="lazy"
-                        allowfullscreen>
-                    </iframe>
+                <div class="info-item">
+                    <i class="bi bi-geo-alt"></i>
+                    <div>
+                        <strong>Endereço</strong>
+                        {% if config.endereco %}
+                            <span>{{ config.endereco }}</span>
+                        {% else %}
+                            <span style="color:#9ca3af;">Não informado</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <i class="bi bi-telephone"></i>
+                    <div>
+                        <strong>Telefone</strong>
+                        {% if config.telefone %}
+                            <a href="https://wa.me/55{{ config.telefone|cut:' '|cut:'('|cut:')'|cut:'-' }}"
+                               target="_blank" style="color:inherit; text-decoration:none;">
+                                {{ config.telefone }}
+                            </a>
+                        {% else %}
+                            <span style="color:#9ca3af;">Não informado</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <i class="bi bi-instagram"></i>
+                    <div>
+                        <strong>Instagram</strong>
+                        {% if config.instagram %}
+                            <a href="https://instagram.com/{{ config.instagram|cut:'@' }}"
+                                target="_blank" style="color:inherit; text-decoration:none;">
+                                @{{ config.instagram|cut:'@' }}
+                            </a>
+                        {% else %}
+                            <span style="color:#9ca3af;">Não informado</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        </section>
+        </div>
+
+        <div class="mapa-box">
+            {% if config.endereco %}
+                <a href="https://www.google.com/maps/search/?api=1&query={{ config.endereco|urlencode }}"
+                    target="_blank"
+                    style="display:flex; align-items:center; justify-content:center; height:100%;
+                        background:#e7f1ff; border-radius:14px; text-decoration:none;
+                        flex-direction:column; gap:12px; color:#0d6efd; font-weight:700; font-size:1rem;">
+                    <i class="bi bi-geo-alt-fill" style="font-size:2.5rem;"></i>
+                    Ver no Google Maps
+                    <span style="font-size:0.78rem; color:#6b7280; font-weight:400; text-align:center; padding:0 16px;">
+                        {{ config.endereco }}
+                    </span>
+                </a>
+            {% else %}
+                <div style="display:flex; align-items:center; justify-content:center; height:100%;
+                            background:#f3f4f6; border-radius:14px; flex-direction:column;
+                            gap:8px; color:#9ca3af;">
+                    <i class="bi bi-geo-alt" style="font-size:2rem;"></i>
+                    <span style="font-size:0.85rem;">Endereço não configurado</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
 
         <section class="section-card">
             <div class="section-header">
@@ -681,7 +701,7 @@
                 <p>Agende em poucos cliques e tenha uma experiência mais organizada e profissional.</p>
             </div>
 
-            <a href="{% url 'agendar' %}" class="btn btn-light">
+            <a href="{% url 'escolher_servico' tenant_slug=tenant_slug %}" class="btn btn-light">
                 <i class="bi bi-calendar-plus"></i>
                 Fazer agendamento
             </a>

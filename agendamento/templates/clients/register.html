@@ -53,11 +53,18 @@
     }
 
     .btn-register {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
         height: 48px;
         border-radius: 12px;
         font-weight: 600;
         font-size: 1rem;
     }
+    
+    .btn-register:hover {
+    background: #255cc0 !important;
+    border-color: #255cc0 !important;
+}
 
     .brand-icon {
         width: 70px;
@@ -132,7 +139,7 @@
                     </div>
                     {% endif %}
 
-                    <form method="POST">
+                    <form method="POST" action="{% url 'register' tenant_slug=tenant_slug %}">
                         {% csrf_token %}
 
                         <div class="mb-3">
@@ -210,7 +217,7 @@
 
                     <div class="text-center mt-4 login-link">
                         <span class="text-muted">Já tem conta?</span>
-                        <a href="/login/">Voltar para login</a>
+                        <a href="{% url 'login' tenant_slug=tenant_slug %}">Voltar para login</a>
                     </div>
 
                 </div>

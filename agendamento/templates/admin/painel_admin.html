@@ -1,5 +1,4 @@
-{% extends 'admin/base_admin.html' %}#sa
-
+{% extends 'admin/base_admin.html' %}
 {% block extra_css %}
 <style>
 :root{
@@ -456,13 +455,13 @@ body{
 
     <div class="sidebar">
         <div class="logo">
-            <i class="bi bi-star-fill"></i> Wanessa
+            <i class="bi bi-star-fill"></i> {{ tenant.nome }} 
         </div>
 
         <div class="section-title">Principal</div>
 
         <div class="menu">
-            <a href="{% url 'painel_admin' %}" class="active">
+            <a href="{% url 'painel_admin' tenant_slug=tenant_slug %}" class="active">
                 <i class="bi bi-house"></i> Home
             </a>
         </div>
@@ -470,39 +469,43 @@ body{
         <div class="section-title">Gestão</div>
 
         <div class="menu">
-            <a href="{% url 'listar_servicos' %}">
+            <a href="{% url 'listar_servicos' tenant_slug=tenant_slug %}">
                 <i class="bi bi-card-text"></i> Gerenciar serviços
             </a>
 
-            <a href="{% url 'listar_clientes' %}">
+            <a href="{% url 'listar_clientes' tenant_slug=tenant_slug %}">
                 <i class="bi bi-people-fill"></i> Lista clientes
             </a>
 
-            <a href="{% url 'agendamentos_hoje' %}">
+            <a href="{% url 'agendamentos_hoje' tenant_slug=tenant_slug %}">
                 <i class="bi bi-calendar-day"></i> Agendamentos de hoje
             </a>
 
-            <a href="{% url 'proximos_agendamentos' %}">
+            <a href="{% url 'proximos_agendamentos' tenant_slug=tenant_slug %}">
                 <i class="bi bi-calendar-week"></i> Agenda
             </a>
 
-            <a href="{% url 'calendario_admin' %}">
+            <a href="{% url 'calendario_admin' tenant_slug=tenant_slug %}">
                 <i class="bi bi-calendar3"></i> Calendário
             </a>
 
-            <a href="{% url 'gerenciar_horarios' %}">
+            <a href="{% url 'gerenciar_horarios' tenant_slug=tenant_slug %}">
                 <i class="bi bi-clock"></i> Gerenciar hórarios
             </a>
 
-            <a href="{% url 'agendamento_manual' %}">
+            <a href="{% url 'agendamento_manual' tenant_slug=tenant_slug %}">
                 <i class="bi bi-pencil-square"></i> Agendamento manual
+            </a>
+
+            <a href="{% url 'personalizar_salao' tenant_slug=tenant_slug %}">
+                <i class="bi bi-shadows"></i> Personalização
             </a>
         </div>
 
         <div class="section-title">Relatórios</div>
 
 <div class="menu">
-    <a href="{% url 'relatorio_31_dias' %}">
+    <a href="{% url 'relatorio_31_dias' tenant_slug=tenant_slug %}">
         <i class="bi bi-bar-chart"></i> Dashboard financeiro
     </a>
 </div>
@@ -510,11 +513,11 @@ body{
 <div class="section-title">Conta</div>
 
 <div class="menu">
-    <a href="{% url 'perfil' %}">
+    <a href="{% url 'perfil' tenant_slug=tenant_slug %}">
         <i class="bi bi-person-circle"></i> Perfil
     </a>
 
-    <a href="{% url 'logout' %}" class="btn-sair">
+    <a href="{% url 'logout' tenant_slug=tenant_slug %}" class="btn-sair">
         <i class="bi bi-box-arrow-right"></i> Sair
     </a>
 </div>

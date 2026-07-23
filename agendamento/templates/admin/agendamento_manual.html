@@ -3,6 +3,8 @@
 {% block title %}Agendamento Manual{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
 <style>
 body {
     background: #d9d9d9;
@@ -228,7 +230,7 @@ body {
             <h1 class="page-title">
                 <i class="bi bi-pencil-square"></i> Agendamento Manual
             </h1>
-            <a href="{% url 'proximos_agendamentos' %}" class="btn btn-outline-secondary btn-back">
+            <a href="{% url 'painel_admin' tenant_slug=tenant_slug %}" class="btn btn-outline-secondary btn-back">
                 <i class="bi bi-arrow-left"></i> Voltar
             </a>
         </div>
@@ -390,32 +392,48 @@ body {
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── Campo de data: ao mudar, redireciona preservando os outros campos ──
-    const inputData = document.getElementById('inputData');
+    flatpickr("#inputData", {
+        dateFormat: "d/m/Y",
+        allowInput: true,
+        disableMobile: true,
+        minDate: "today",
+        locale: flatpickr.l10ns.pt,
+        onChange: function(selectedDates, dateStr) {
+            const partes = dateStr.split('/');
+            const dataFormatada = `${partes[2]}-${partes[1]}-${partes[0]}`;
 
-    inputData.addEventListener('change', function () {
-        const novaData = this.value;
-        if (!novaData) return;
+            const nome      = document.getElementById('id_nome').value;
+            const telefone  = document.getElementById('id_telefone').value;
+            const servico   = document.getElementById('id_servico').value;
+            const descricao = document.getElementById('id_descricao').value;
 
-        const nome      = document.getElementById('id_nome').value;
-        const telefone  = document.getElementById('id_telefone').value;
-        const servico   = document.getElementById('id_servico').value;
-        const descricao = document.getElementById('id_descricao').value;
+            const params = new URLSearchParams();
+            params.set('data', dataFormatada);
+            if (nome)      params.set('nome', nome);
+            if (telefone)  params.set('telefone', telefone);
+            if (servico)   params.set('servico', servico);
+            if (descricao) params.set('descricao', descricao);
 
-        const params = new URLSearchParams();
-        params.set('data', novaData);
-        if (nome)      params.set('nome', nome);
-        if (telefone)  params.set('telefone', telefone);
-        if (servico)   params.set('servico', servico);
-        if (descricao) params.set('descricao', descricao);
-
-        window.location.href = '{{ request.path }}?' + params.toString();
+            window.location.href = '{{ request.path }}?' + params.toString();
+        }
     });
 
-    // ── Selecionar horário ───────────────────────────────────────────────────
+    document.getElementById('inputData').addEventListener('input', function(e) {
+        let v = e.target.value.replace(/\D/g, '');
+        if (v.length > 8) v = v.slice(0, 8);
+        if (v.length > 4) {
+            v = v.replace(/(\d{2})(\d{2})(\d{1,4})/, '$1/$2/$3');
+        } else if (v.length > 2) {
+            v = v.replace(/(\d{2})(\d{1,2})/, '$1/$2');
+        }
+        e.target.value = v;
+    });
+
     const horarioAtual = '{{ form.horario.value|default:"" }}';
     if (horarioAtual) {
         const btn = document.querySelector('[data-horario="' + horarioAtual + '"]');
@@ -439,20 +457,16 @@ function verificarBotao() {
     document.getElementById('btnSubmit').disabled = !h;
 }
 
-// ── Máscara de telefone — idêntica ao register.html ─────────────────────────
 const telefoneInput = document.getElementById('id_telefone');
 if (telefoneInput) {
     telefoneInput.addEventListener('input', function (e) {
         let value = e.target.value.replace(/\D/g, '');
-
         if (value.length > 11) value = value.slice(0, 11);
-
         if (value.length > 6) {
             value = value.replace(/(\d{2})(\d{5})(\d+)/, '($1) $2-$3');
         } else if (value.length > 2) {
             value = value.replace(/(\d{2})(\d+)/, '($1) $2');
         }
-
         e.target.value = value;
     });
 }

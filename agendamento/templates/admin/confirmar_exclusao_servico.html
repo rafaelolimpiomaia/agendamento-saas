@@ -175,7 +175,7 @@
             {% csrf_token %}
 
             <div class="actions">
-                <a href="{% url 'listar_servicos' %}" class="btn btn-cancel">
+                <a href="{% url 'listar_servicos' tenant_slug=tenant_slug %}" class="btn btn-cancel">
                     <i class="bi bi-arrow-left"></i>
                     Cancelar
                 </a>

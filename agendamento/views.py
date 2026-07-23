@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Cliente, Agendamento, Servico, NotificacaoExclusao
-from .forms import AgendamentoForm, IdentificarUsuarioForm , RedefinirSenhaForm, AgendamentoManualForm
+from .models import Cliente, Agendamento, Servico, NotificacaoExclusao, ConfiguracaoSalao
+from .forms import AgendamentoForm, IdentificarUsuarioForm , RedefinirSenhaForm, AgendamentoManualForm, ConfiguracaoSalaoForm
 from datetime import datetime, timedelta, date
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
@@ -25,10 +25,42 @@ import calendar
 from django.http import JsonResponse
 
 STATUS_VALIDOS = {'presente', 'ausente', 'pendente'}
-#painel do adm --------
 
-@staff_member_required
-def criar_servico(request):
+
+# ── SEGURANÇA: verifica que o staff logado é admin DESTE tenant ───────────────
+def _verificar_admin_do_tenant(request):
+    """
+    Retorna True se o usuário logado é o admin do tenant atual.
+    Impede que admin de outro salão acesse este painel.
+    Superusers Django têm acesso total (para manutenção).
+    """
+    if request.user.is_superuser:
+        return True
+    if not request.user.is_staff:
+        return False
+    tenant = request.tenant
+    # Verifica se este usuário é o admin vinculado ao tenant atual
+    return tenant.admin_id == request.user.id
+
+
+def admin_do_tenant_required(view_func):
+    """
+    Decorator que combina staff_member_required com verificação de tenant.
+    Substitui @staff_member_required nas views de admin.
+    """
+    @staff_member_required
+    def wrapper(request, *args, **kwargs):
+        if not _verificar_admin_do_tenant(request):
+            messages.error(request, 'Você não tem permissão para acessar este painel.')
+            return redirect('login', tenant_slug=request.tenant.slug)
+        return view_func(request, *args, **kwargs)
+    wrapper.__name__ = view_func.__name__
+    return wrapper
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+@admin_do_tenant_required
+def criar_servico(request, tenant_slug=None):
     if request.method == "POST":
         nome = request.POST.get("nome", "").strip()
         descricao = request.POST.get("descricao", "").strip()
@@ -36,7 +68,6 @@ def criar_servico(request):
         duracao = request.POST.get("duracao_minutos", "").strip()
         horario_duplo = request.POST.get("horario_duplo") == "on"
 
-        # 1. valida primeiro
         if not nome or not preco or not duracao:
             return render(request, "admin/criar_servico.html", {
                 "erro": "Preencha todos os campos obrigatórios."
@@ -47,11 +78,11 @@ def criar_servico(request):
             duracao = int(duracao)
         except ValueError:
             return render(request, "admin/criar_servico.html", {
-                "erro": "Preço e duração devem ser numéricos."
+                "erro": "Preço e duração devem ser numéricos.",
             })
 
-        # 2. só cria após validar
         Servico.objects.create(
+            tenant=request.tenant,
             nome=nome,
             descricao=descricao,
             preco=preco,
@@ -59,20 +90,22 @@ def criar_servico(request):
             horario_duplo=horario_duplo,
         )
 
-        return redirect("listar_servicos")
+        return redirect('listar_servicos', tenant_slug=request.tenant.slug)
 
     return render(request, "admin/criar_servico.html")
 
 
-@staff_member_required
-def listar_servicos(request):
-    servicos = Servico.objects.all()
-    return render(request, "admin/listar_servicos.html", {"servicos": servicos})
+@admin_do_tenant_required
+def listar_servicos(request, tenant_slug=None):
+    servicos = Servico.objects.filter(tenant=request.tenant)
+    return render(request, "admin/listar_servicos.html", {
+        "servicos": servicos,
+    })
 
 
-@staff_member_required
-def editar_servico(request, id):
-    servico = get_object_or_404(Servico, id=id)
+@admin_do_tenant_required
+def editar_servico(request, tenant_slug=None, id=None):
+    servico = get_object_or_404(Servico, tenant=request.tenant, id=id)
 
     if request.method == "POST":
         servico.nome = request.POST.get("nome")
@@ -81,14 +114,14 @@ def editar_servico(request, id):
         servico.duracao_minutos = request.POST.get("duracao_minutos")
 
         novo_duplo = request.POST.get("horario_duplo") == "on"
-        era_duplo = servico.horario_duplo  # valor antes de salvar
+        era_duplo = servico.horario_duplo
 
         servico.horario_duplo = novo_duplo
         servico.save()
 
-        # ── Sincroniza bloqueios retroativos para agendamentos futuros ──
         hoje = date.today()
         agendamentos_futuros = Agendamento.objects.filter(
+            tenant=request.tenant,
             servico=servico,
             data__gte=hoje
         )
@@ -96,7 +129,6 @@ def editar_servico(request, id):
         for ag in agendamentos_futuros:
             horario_str = ag.horario.strftime("%H:%M")
 
-            # Ignora exceção do almoço e último horário do dia
             if is_excecao_almoco(horario_str):
                 continue
 
@@ -104,115 +136,96 @@ def editar_servico(request, id):
             proximo = get_proximo_horario(horario_str, horarios_do_dia)
 
             if proximo is None:
-                continue  # último horário do dia, não bloqueia
+                continue
 
             proximo_time = datetime.strptime(proximo, "%H:%M").time()
 
             if novo_duplo and not era_duplo:
-                # Serviço virou duplo → cria bloqueio para o próximo horário
-                # Só bloqueia se não houver agendamento real nesse horário
                 proximo_tem_agendamento = Agendamento.objects.filter(
+                    tenant=request.tenant,
                     data=ag.data,
                     horario=proximo_time
                 ).exists()
                 if not proximo_tem_agendamento:
                     HorarioBloqueado.objects.update_or_create(
+                        tenant=request.tenant,
                         data=ag.data,
                         horario=proximo_time,
                         defaults={"tipo": "bloqueio"}
                     )
 
             elif era_duplo and not novo_duplo:
-                # Serviço deixou de ser duplo → remove o bloqueio criado por ele
                 HorarioBloqueado.objects.filter(
+                    tenant=request.tenant,
                     data=ag.data,
                     horario=proximo_time,
                     tipo="bloqueio"
                 ).delete()
-        # ────────────────────────────────────────────────────────────────
 
-        return redirect("listar_servicos")
+        return redirect('listar_servicos', tenant_slug=request.tenant.slug)
 
-    return render(request, "admin/editar_servico.html", {"servico": servico})
+    return render(request, "admin/editar_servico.html", {
+        "servico": servico,
+    })
 
 
-@staff_member_required
-def excluir_servico(request, id):
-    servico = get_object_or_404(Servico, id=id)
+@admin_do_tenant_required
+def excluir_servico(request, tenant_slug=None, id=None):
+    servico = get_object_or_404(Servico, tenant=request.tenant, id=id)
 
     if request.method == "POST":
         servico.delete()
-        return redirect("listar_servicos")
+        return redirect('listar_servicos', tenant_slug=request.tenant.slug)
 
-    return render(request, "admin/confirmar_exclusao_servico.html", {"servico": servico})
-
-@staff_member_required
-def agendamentos_hoje(request):
-    hoje = date.today()
-    agendamentos = Agendamento.objects.filter(data=hoje)
-
-    return render(request, "admin/relatorio_hoje.html", {
-        "agendamentos": agendamentos
+    return render(request, "admin/confirmar_exclusao_servico.html", {
+        "servico": servico,
     })
 
-@staff_member_required
-def calendario_admin(request):
-    """
-    Página principal do Calendário Administrativo.
-    Renderiza a estrutura base; os dados vêm via AJAX (api_calendario_dados).
-    """
+@admin_do_tenant_required
+def agendamentos_hoje(request, tenant_slug=None):
+    hoje = date.today()
+    agendamentos = Agendamento.objects.filter(
+        tenant=request.tenant,
+        data=hoje)
+
+    return render(request, "admin/relatorio_hoje.html", {
+        "agendamentos": agendamentos,
+    })
+
+@admin_do_tenant_required
+def calendario_admin(request, tenant_slug=None):
     hoje = date.today()
     return render(request, 'admin/calendario_admin.html', {
         'hoje': hoje.isoformat(),
     })
 
 
-@staff_member_required
-def api_calendario_dados(request):
-    """
-    Endpoint JSON — retorna dados do mês solicitado.
-    Parâmetros GET: ano (int), mes (int)
-
-    Resposta:
-    {
-        "dias": {
-            "2025-06-10": {
-                "total": 3,
-                "agendamentos": [...],
-                "horarios": [
-                    {"horario": "08:00", "status": "livre|ocupado|bloqueado", "agendamento": {...}|null},
-                    ...
-                ]
-            }
-        }
-    }
-    """
+@admin_do_tenant_required
+def api_calendario_dados(request, tenant_slug=None):
     try:
         ano = int(request.GET.get('ano', date.today().year))
         mes = int(request.GET.get('mes', date.today().month))
     except (ValueError, TypeError):
         return JsonResponse({'erro': 'Parâmetros inválidos'}, status=400)
 
-    # Primeiro e último dia do mês
     primeiro_dia = date(ano, mes, 1)
     ultimo_dia = date(ano, mes, calendar.monthrange(ano, mes)[1])
 
-    # ── Busca todos os agendamentos do mês em uma única query ──
     agendamentos_mes = (
         Agendamento.objects
-        .filter(data__gte=primeiro_dia, data__lte=ultimo_dia)
+        .filter(tenant=request.tenant, data__gte=primeiro_dia, data__lte=ultimo_dia)
         .select_related('cliente__id_usuario', 'servico')
         .order_by('data', 'horario')
     )
 
-    # ── Busca todos os bloqueios do mês em uma única query ──
     bloqueios_mes = (
         HorarioBloqueado.objects
-        .filter(data__gte=primeiro_dia, data__lte=ultimo_dia)
+        .filter(
+            tenant=request.tenant,
+            data__gte=primeiro_dia, data__lte=ultimo_dia)
     )
 
-    # Indexa agendamentos por (data, horario)
-    agenda_idx = {}  # key: (data_str, horario_str) → agendamento_dict
+    agenda_idx = {}
     contagem_por_dia = defaultdict(int)
 
     for ag in agendamentos_mes:
@@ -229,9 +242,8 @@ def api_calendario_dados(request):
             'origem': ag.origem,
         }
 
-    # Indexa bloqueios por (data, horario)  — horario None = dia inteiro bloqueado
-    bloqueio_idx = {}  # key: (data_str, horario_str|None) → tipo
-    dias_bloqueados = set()  # dias com bloqueio de dia inteiro
+    bloqueio_idx = {}
+    dias_bloqueados = set()
 
     for b in bloqueios_mes:
         data_str = b.data.isoformat()
@@ -240,16 +252,15 @@ def api_calendario_dados(request):
                 dias_bloqueados.add(data_str)
         else:
             hora_str = b.horario.strftime('%H:%M')
-            bloqueio_idx[(data_str, hora_str)] = b.tipo  # 'bloqueio' ou 'liberado'
+            bloqueio_idx[(data_str, hora_str)] = b.tipo
 
-    # ── Monta a estrutura de resposta dia a dia ──
     dias = {}
     delta = timedelta(days=1)
     dia_cursor = primeiro_dia
 
     while dia_cursor <= ultimo_dia:
         data_str = dia_cursor.isoformat()
-        horarios_do_dia = gerar_horarios(dia_cursor)  # lista ["08:00", ...]
+        horarios_do_dia = gerar_horarios(dia_cursor)
         dia_bloqueado = data_str in dias_bloqueados
 
         slots = []
@@ -260,7 +271,6 @@ def api_calendario_dados(request):
             if ag:
                 status_slot = 'ocupado'
             elif dia_bloqueado:
-                # Se o dia está bloqueado mas existe uma exceção (liberado), fica livre
                 if tipo_bloqueio == 'liberado':
                     status_slot = 'livre'
                 else:
@@ -295,12 +305,13 @@ def api_calendario_dados(request):
         'dias': dias,
     })
 
-@staff_member_required
-def relatorio_31_dias(request):
+@admin_do_tenant_required
+def relatorio_31_dias(request, tenant_slug=None):
     hoje = timezone.localdate()
-    inicio = hoje - timedelta(days=30) 
+    inicio = hoje - timedelta(days=30)
 
     agendamentos = Agendamento.objects.filter(
+        tenant=request.tenant,
         data__range=[inicio, hoje],
         status='presente'
     ).select_related('servico').order_by('data')
@@ -322,8 +333,7 @@ def relatorio_31_dias(request):
         datas_ordenadas.append(dia.strftime("%d/%m"))
         valores_ordenados.append(float(round(faturamento_por_dia.get(dia_str, Decimal('0')), 2)))
 
-    
-    servicos = Servico.objects.all()
+    servicos = Servico.objects.filter(tenant=request.tenant)
     servicos_dict = {s.nome: Decimal('0') for s in servicos}
 
     for ag in agendamentos:
@@ -334,15 +344,9 @@ def relatorio_31_dias(request):
     servicos_labels = list(servicos_dict.keys())
     servicos_valores = [float(v) for v in servicos_dict.values()]
 
-    
     dias_semana = {
-        "Monday": 0,
-        "Tuesday": 0,
-        "Wednesday": 0,
-        "Thursday": 0,
-        "Friday": 0,
-        "Saturday": 0,
-        "Sunday": 0,
+        "Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0,
+        "Friday": 0, "Saturday": 0, "Sunday": 0,
     }
 
     for ag in agendamentos:
@@ -350,13 +354,8 @@ def relatorio_31_dias(request):
         dias_semana[dia] += 1
 
     traducao = {
-        "Monday": "Seg",
-        "Tuesday": "Ter",
-        "Wednesday": "Qua",
-        "Thursday": "Qui",
-        "Friday": "Sex",
-        "Saturday": "Sáb",
-        "Sunday": "Dom",
+        "Monday": "Seg", "Tuesday": "Ter", "Wednesday": "Qua",
+        "Thursday": "Qui", "Friday": "Sex", "Saturday": "Sáb", "Sunday": "Dom",
     }
 
     dias_labels = []
@@ -366,77 +365,101 @@ def relatorio_31_dias(request):
         dias_labels.append(traducao[dia])
         dias_valores.append(valor)
 
-    
     servico_top = max(servicos_dict, key=servicos_dict.get) if servicos_dict else "Nenhum"
 
-    
     total_agendamentos = Agendamento.objects.filter(
+        tenant=request.tenant,
         data__range=[inicio, hoje]
     ).count()
 
-    
     total_ausentes = Agendamento.objects.filter(
+        tenant=request.tenant,
         data__range=[inicio, hoje],
         status='ausente'
     ).count()
 
-    
     taxa_ausencia = 0
     if total_agendamentos > 0:
         taxa_ausencia = (total_ausentes / total_agendamentos) * 100
 
     return render(request, "admin/relatorio_31.html", {
-    "agendamentos": agendamentos,
+        "agendamentos": agendamentos,
+        "faturamento_total": total,
+        "labels_faturamento": json.dumps(datas_ordenadas),
+        "dados_faturamento": json.dumps(valores_ordenados),
+        "labels_servicos": json.dumps(servicos_labels),
+        "dados_servicos": json.dumps(servicos_valores),
+        "labels_semana": json.dumps(dias_labels),
+        "dados_semana": json.dumps(dias_valores),
+        "servico_mais_lucrativo": servico_top,
+        "total_agendamentos": total_agendamentos,
+        "taxa_ausencia": round(taxa_ausencia, 1)
+    })
 
-    "faturamento_total": total,
+@admin_do_tenant_required
+def personalizar_salao(request, tenant_slug=None):
+    config, _ = ConfiguracaoSalao.objects.get_or_create(tenant=request.tenant)
+ 
+    if request.method == 'POST':
+        form = ConfiguracaoSalaoForm(request.POST)
+        if form.is_valid():
+            config.nome_exibicao = form.cleaned_data['nome_exibicao']
+            config.tipo_negocio  = form.cleaned_data['tipo_negocio']
+            config.telefone      = form.cleaned_data['telefone']
+            config.publico       = form.cleaned_data['publico']
+            config.endereco      = form.cleaned_data['endereco']
+            config.instagram     = form.cleaned_data['instagram']
+            config.cor_primaria  = form.cleaned_data['cor_primaria'] or '#0d6efd'
+            config.save()
+            messages.success(request, 'Configurações salvas com sucesso!')
+            return redirect('personalizar_salao', tenant_slug=request.tenant.slug)
+    else:
+        form = ConfiguracaoSalaoForm(initial={
+            'nome_exibicao': config.nome_exibicao,
+            'tipo_negocio':  config.tipo_negocio,
+            'telefone':      config.telefone,
+            'publico':       config.publico,
+            'endereco':      config.endereco,
+            'instagram':     config.instagram,
+            'cor_primaria':  config.cor_primaria,
+        })
 
-    "labels_faturamento": json.dumps(datas_ordenadas),
-    "dados_faturamento": json.dumps(valores_ordenados),
+    return render(request, 'admin/personalizar_salao.html', {
+        'form': form,
+        'config': config,
+    })
 
-    "labels_servicos": json.dumps(servicos_labels),
-    "dados_servicos": json.dumps(servicos_valores),
-
-    "labels_semana": json.dumps(dias_labels),
-    "dados_semana": json.dumps(dias_valores),
-
-    "servico_mais_lucrativo": servico_top,
-    "total_agendamentos": total_agendamentos,
-    "taxa_ausencia": round(taxa_ausencia, 1)
-})
-    
-
-@staff_member_required
-def painel_admin(request):
+@admin_do_tenant_required
+def painel_admin(request, tenant_slug=None):
     return render(request, 'admin/painel_admin.html')
 
-@staff_member_required
-def atualizar_status(request, id, status):
+
+@admin_do_tenant_required
+def atualizar_status(request, tenant_slug=None, id=None, status=None):
     if status not in STATUS_VALIDOS:
         messages.error(request, "Status inválido.")
-        return redirect('agendamentos_hoje')
+        return redirect('agendamentos_hoje', tenant_slug=request.tenant.slug)
 
-    ag = get_object_or_404(Agendamento, id=id)
+    ag = get_object_or_404(Agendamento, tenant=request.tenant, id=id)
     ag.status = status
     ag.save()
-    return redirect('agendamentos_hoje')
+    return redirect('agendamentos_hoje', tenant_slug=request.tenant.slug)
 
-@staff_member_required
-def proximos_agendamentos(request):
 
+@admin_do_tenant_required
+def proximos_agendamentos(request, tenant_slug=None):
     data = request.GET.get("data")
-
-    data_convertida = None
-
     data_convertida = converter_data(data) if data else None
-
     hoje = date.today()
 
     if data_convertida:
         agendamentos = Agendamento.objects.filter(
+            tenant=request.tenant,
             data=data_convertida
         ).order_by('data', 'horario')
     else:
         agendamentos = Agendamento.objects.filter(
+            tenant=request.tenant,
             data__gte=hoje
         ).order_by('data', 'horario')
 
@@ -446,14 +469,9 @@ def proximos_agendamentos(request):
     })
 
 
-@staff_member_required
-def excluir_agendamento_admin(request, id):
-    """
-    Exclusão de agendamento pelo administrador.
-    Cria uma NotificacaoExclusao para a cliente afetada.
-    Só aceita POST para evitar exclusões acidentais via GET.
-    """
-    agendamento = get_object_or_404(Agendamento, id=id)
+@admin_do_tenant_required
+def excluir_agendamento_admin(request, tenant_slug=None, id=None):
+    agendamento = get_object_or_404(Agendamento, tenant=request.tenant, id=id)
 
     if request.method == 'POST':
         cliente = agendamento.cliente
@@ -461,7 +479,6 @@ def excluir_agendamento_admin(request, id):
         data_ag = agendamento.data
         horario_ag = agendamento.horario
 
-        # Remove bloqueio do horário duplo, se houver
         if agendamento.servico and requer_horario_duplo(agendamento.servico):
             horario_str = agendamento.horario.strftime("%H:%M")
             if not is_excecao_almoco(horario_str):
@@ -470,15 +487,14 @@ def excluir_agendamento_admin(request, id):
                 if proximo is not None:
                     proximo_time = datetime.strptime(proximo, "%H:%M").time()
                     HorarioBloqueado.objects.filter(
+                        tenant=request.tenant,
                         data=agendamento.data,
                         horario=proximo_time,
                         tipo="bloqueio"
                     ).delete()
 
-        # Salva os dados ANTES de deletar
         agendamento.delete()
 
-        # Cria notificação apenas para agendamentos com cliente cadastrado
         if cliente:
             NotificacaoExclusao.objects.create(
                 cliente=cliente,
@@ -488,28 +504,21 @@ def excluir_agendamento_admin(request, id):
             )
 
         messages.success(request, 'Agendamento excluído e cliente notificada.')
-        return redirect('proximos_agendamentos')
+        return redirect('proximos_agendamentos', tenant_slug=request.tenant.slug)
 
-    # GET — exibe confirmação
     return render(request, 'admin/confirmar_exclusao_agendamento.html', {
         'agendamento': agendamento
     })
 
 
 @login_required
-def marcar_notificacao_lida(request, notif_id):
-    """
-    Marca uma NotificacaoExclusao como visualizada (chamada via POST/AJAX).
-    Só o próprio cliente dono da notificação pode marcá-la.
-    """
+def marcar_notificacao_lida(request, tenant_slug=None, notif_id=None):
     if request.method == 'POST':
-        cliente = get_object_or_404(Cliente, id_usuario=request.user)
+        cliente = get_object_or_404(Cliente, tenant=request.tenant, id_usuario=request.user)
         notif = get_object_or_404(NotificacaoExclusao, id=notif_id, cliente=cliente)
         notif.visualizado = True
         notif.save()
-        from django.http import JsonResponse
         return JsonResponse({'ok': True})
-    from django.http import JsonResponse
     return JsonResponse({'ok': False}, status=405)
 
 
@@ -528,8 +537,8 @@ def converter_data(data):
     return None
 
 
-@staff_member_required
-def gerenciar_horarios(request):
+@admin_do_tenant_required
+def gerenciar_horarios(request, tenant_slug=None):
     data = request.GET.get("data")
     data_formatada = converter_data(data)
 
@@ -540,7 +549,10 @@ def gerenciar_horarios(request):
     dia_bloqueado = False
 
     if data_formatada:
-        bloqueios = HorarioBloqueado.objects.filter(data=data_formatada)
+        bloqueios = HorarioBloqueado.objects.filter(
+            tenant=request.tenant,
+            data=data_formatada
+        )
 
         bloqueados = [
             b.horario.strftime("%H:%M")
@@ -567,207 +579,455 @@ def gerenciar_horarios(request):
         "dia_bloqueado": dia_bloqueado
     })
 
-#bloquear horario
-@staff_member_required
-def bloquear_horario(request):
+
+@admin_do_tenant_required
+def bloquear_horario(request, tenant_slug=None):
     if request.method == "POST":
         data = request.POST.get("data")
         horario = request.POST.get("horario")
-
         data_formatada = converter_data(data)
 
         if data_formatada and horario and data_formatada >= date.today():
             horario_formatado = datetime.strptime(horario, "%H:%M").time()
 
-
             HorarioBloqueado.objects.filter(
+                tenant=request.tenant,
                 data=data_formatada,
                 horario=horario_formatado,
                 tipo="liberado"
             ).delete()
 
             HorarioBloqueado.objects.update_or_create(
+                tenant=request.tenant,
                 data=data_formatada,
                 horario=horario_formatado,
                 defaults={"tipo": "bloqueio"}
             )
 
-        return redirect(f"/gerenciar-horarios/?data={data}")
+        return redirect(f"/{request.tenant.slug}/gerenciar-horarios/?data={data}")
 
-    return redirect("/gerenciar-horarios/")
+    return redirect(f"/{request.tenant.slug}/gerenciar-horarios/")
 
 
-#desbloquear horario
-@staff_member_required
-def desbloquear_horario(request):
+@admin_do_tenant_required
+def desbloquear_horario(request, tenant_slug=None):
     if request.method == "POST":
         data = request.POST.get("data")
         horario = request.POST.get("horario")
-
         data_formatada = converter_data(data)
 
         if data_formatada and horario and data_formatada >= date.today():
             horario_formatado = datetime.strptime(horario, "%H:%M").time()
 
             HorarioBloqueado.objects.filter(
+                tenant=request.tenant,
                 data=data_formatada,
                 horario=horario_formatado,
                 tipo="bloqueio"
             ).delete()
 
-        return redirect(f"/gerenciar-horarios/?data={data}")
+        return redirect(f"/{request.tenant.slug}/gerenciar-horarios/?data={data}")
 
-    return redirect("/gerenciar-horarios/")
+    return redirect(f"/{request.tenant.slug}/gerenciar-horarios/")
 
 
-#liberar horario
-@staff_member_required
-def liberar_horario(request):
+@admin_do_tenant_required
+def liberar_horario(request, tenant_slug=None):
     if request.method == "POST":
         data = request.POST.get("data")
         horario = request.POST.get("horario")
-
         data_formatada = converter_data(data)
 
         if data_formatada and horario and data_formatada >= date.today():
             horario_formatado = datetime.strptime(horario, "%H:%M").time()
 
             HorarioBloqueado.objects.filter(
+                tenant=request.tenant,
                 data=data_formatada,
                 horario=horario_formatado,
                 tipo="bloqueio"
             ).delete()
 
             HorarioBloqueado.objects.update_or_create(
+                tenant=request.tenant,
                 data=data_formatada,
                 horario=horario_formatado,
                 defaults={"tipo": "liberado"}
             )
 
-        return redirect(f"/gerenciar-horarios/?data={data}")
+        return redirect(f"/{request.tenant.slug}/gerenciar-horarios/?data={data}")
 
-    return redirect("/gerenciar-horarios/")
+    return redirect(f"/{request.tenant.slug}/gerenciar-horarios/")
 
 
-#bloquear dia inteiro
-@staff_member_required
-def bloquear_dia(request):
+@admin_do_tenant_required
+def bloquear_dia(request, tenant_slug=None):
     if request.method == "POST":
         data = request.POST.get("data")
         data_formatada = converter_data(data)
 
         if data_formatada and data_formatada >= date.today():
             HorarioBloqueado.objects.update_or_create(
+                tenant=request.tenant,
                 data=data_formatada,
                 horario=None,
                 defaults={"tipo": "bloqueio"}
             )
 
-        return redirect(f"/gerenciar-horarios/?data={data}")
+        return redirect(f"/{request.tenant.slug}/gerenciar-horarios/?data={data}")
 
-    return redirect("/gerenciar-horarios/")
+    return redirect(f"/{request.tenant.slug}/gerenciar-horarios/")
 
 
-#desbloquear dia inteiro
-@staff_member_required
-def desbloquear_dia(request):
+@admin_do_tenant_required
+def desbloquear_dia(request, tenant_slug=None):
     if request.method == "POST":
         data = request.POST.get("data")
         data_formatada = converter_data(data)
 
         if data_formatada and data_formatada >= date.today():
             HorarioBloqueado.objects.filter(
+                tenant=request.tenant,
                 data=data_formatada,
                 horario=None,
                 tipo="bloqueio"
             ).delete()
 
-        return redirect(f"/gerenciar-horarios/?data={data}")
+        return redirect(f"/{request.tenant.slug}/gerenciar-horarios/?data={data}")
 
-    return redirect("/gerenciar-horarios/")
+    return redirect(f"/{request.tenant.slug}/gerenciar-horarios/")
 
-@staff_member_required
-def remover_excecao(request):
+
+@admin_do_tenant_required
+def remover_excecao(request, tenant_slug=None):
     if request.method == "POST":
         data = request.POST.get("data")
         horario = request.POST.get("horario")
-
         data_formatada = converter_data(data)
 
         if data_formatada and horario:
             horario_formatado = datetime.strptime(horario, "%H:%M").time()
 
             HorarioBloqueado.objects.filter(
+                tenant=request.tenant,
                 data=data_formatada,
                 horario=horario_formatado,
                 tipo="liberado"
             ).delete()
 
-        return redirect(f"/gerenciar-horarios/?data={data}")
+        return redirect(f"/{request.tenant.slug}/gerenciar-horarios/?data={data}")
 
-    return redirect("/gerenciar-horarios/")
+    return redirect(f"/{request.tenant.slug}/gerenciar-horarios/")
 
-#--------------------------------------------------------------------------------------------------------
+# ── GESTÃO DE CLIENTES (admin) ────────────────────────────────────────────────
 
-#painel do usuario
+@admin_do_tenant_required
+def listar_clientes(request, tenant_slug=None):
+    q = request.GET.get('q', '').strip()
 
-def register(request):
+    clientes_qs = Cliente.objects.filter(
+        tenant=request.tenant
+    ).select_related('id_usuario')
+
+    if q:
+        clientes_qs = clientes_qs.filter(id_usuario__username__icontains=q)
+
+    clientes_qs = clientes_qs.order_by('id_usuario__username')
+
+    clientes_data = []
+    for cliente in clientes_qs:
+        total_agendamentos = Agendamento.objects.filter(
+            tenant=request.tenant,
+            cliente=cliente).count()
+        total_ausencias = Agendamento.objects.filter(
+            tenant=request.tenant,
+            cliente=cliente, status='ausente').count()
+        clientes_data.append({
+            'cliente': cliente,
+            'total_agendamentos': total_agendamentos,
+            'total_ausencias': total_ausencias,
+        })
+
+    return render(request, 'admin/listar_clientes.html', {
+        'clientes_data': clientes_data,
+        'q': q,
+        'total_clientes': clientes_qs.count(),
+    })
+
+
+@admin_do_tenant_required
+def bloquear_cliente(request, tenant_slug=None, user_id=None):
+    if request.method == 'POST':
+        cliente = get_object_or_404(Cliente, tenant=request.tenant, id_usuario__id=user_id)
+        if not cliente.id_usuario.is_staff:
+            cliente.bloqueado = True
+            cliente.save()
+            messages.success(
+                request,
+                f'Cliente "{cliente.id_usuario.username}" foi bloqueado com sucesso.'
+            )
+        else:
+            messages.error(request, 'Não é possível bloquear um administrador.')
+    return redirect('listar_clientes', tenant_slug=request.tenant.slug)
+
+
+@admin_do_tenant_required
+def desbloquear_cliente(request, tenant_slug=None, user_id=None):
+    if request.method == 'POST':
+        cliente = get_object_or_404(Cliente, tenant=request.tenant, id_usuario__id=user_id)
+        cliente.bloqueado = False
+        cliente.save()
+        messages.success(
+            request,
+            f'Cliente "{cliente.id_usuario.username}" foi desbloqueado com sucesso.'
+        )
+    return redirect('listar_clientes', tenant_slug=request.tenant.slug)
+
+
+@admin_do_tenant_required
+def excluir_cliente(request, tenant_slug=None, user_id=None):
+    user = get_object_or_404(User, id=user_id, is_staff=False)
+
+    if request.method == 'POST':
+        username = user.username
+        user.delete()
+        messages.success(request, f'Conta de "{username}" foi excluída com sucesso.')
+        return redirect('listar_clientes', tenant_slug=request.tenant.slug)
+
+    cliente = get_object_or_404(Cliente, tenant=request.tenant, id_usuario=user)
+    total_agendamentos = Agendamento.objects.filter(
+        tenant=request.tenant,
+        cliente=cliente).count()
+    return render(request, 'admin/confirmar_exclusao_cliente.html', {
+        'user': user,
+        'cliente': cliente,
+        'total_agendamentos': total_agendamentos,
+    })
+
+@admin_do_tenant_required
+def agendamento_manual(request, tenant_slug=None):
+    data_str = request.GET.get('data') or request.POST.get('data') or ''
+    data_convertida = converter_data(data_str) if data_str else None
+
+    horarios_do_dia = gerar_horarios(data_convertida)
+
+    horarios_ocupados = []
+    bloqueados_lista = []
+
+    bloqueios = (
+        HorarioBloqueado.objects.filter(
+            tenant=request.tenant,
+            data=data_convertida)
+        if data_convertida
+        else HorarioBloqueado.objects.none()
+    )
+
+    dia_bloqueado = bloqueios.filter(horario__isnull=True, tipo='bloqueio').exists()
+
+    if data_convertida:
+        horarios_ocupados = list(
+            Agendamento.objects.filter(
+                tenant=request.tenant,
+                data=data_convertida)
+            .values_list('horario', flat=True)
+        )
+        horarios_ocupados = [h.strftime('%H:%M') for h in horarios_ocupados]
+
+    for h in horarios_do_dia:
+        horario_time = datetime.strptime(h, '%H:%M').time()
+
+        bloq_manual = bloqueios.filter(horario=horario_time, tipo='bloqueio').exists()
+        lib_manual  = bloqueios.filter(horario=horario_time, tipo='liberado').exists()
+
+        if (dia_bloqueado and not lib_manual) or bloq_manual or h in horarios_ocupados:
+            bloqueados_lista.append(h)
+
+    horarios_disponiveis = [h for h in horarios_do_dia if h not in bloqueados_lista]
+
+    if request.method == 'POST':
+        form = AgendamentoManualForm(
+            request.POST,
+            tenant=request.tenant,
+            horarios_disponiveis=horarios_do_dia,
+        )
+
+        if form.is_valid():
+            nome      = form.cleaned_data['nome'].strip()
+            telefone  = form.cleaned_data['telefone'].strip()
+            servico   = form.cleaned_data['servico']
+            data      = form.cleaned_data['data']
+            horario   = form.cleaned_data['horario']
+            descricao = form.cleaned_data.get('descricao', '')
+
+            if Agendamento.objects.filter(
+                tenant=request.tenant,
+                data=data, horario=horario).exists():
+                form.add_error('horario', 'Esse horário já está ocupado.')
+
+            elif _horario_esta_bloqueado(request.tenant, data, horario):
+                form.add_error('horario', 'Este horário está bloqueado na agenda.')
+
+            else:
+                duplo = requer_horario_duplo(servico)
+                if duplo:
+                    horario_str = horario.strftime('%H:%M')
+                    if not is_excecao_almoco(horario_str):
+                        proximo = get_proximo_horario(horario_str, horarios_do_dia)
+                        if proximo is not None:
+                            proximo_time = datetime.strptime(proximo, '%H:%M').time()
+                            proximo_ocupado = (
+                                Agendamento.objects.filter(
+                                    tenant=request.tenant,
+                                    data=data, horario=proximo_time).exists()
+                                or _horario_esta_bloqueado(request.tenant, data, proximo_time)
+                            )
+                            if proximo_ocupado:
+                                form.add_error(
+                                    'horario',
+                                    f'Este serviço ocupa dois horários consecutivos '
+                                    f'({horario_str} e {proximo}), '
+                                    f'mas {proximo} já está ocupado. Escolha outro horário.',
+                                )
+
+            if not form.errors:
+                ag = Agendamento(
+                    tenant=request.tenant,
+                    cliente=None,
+                    servico=servico,
+                    data=data,
+                    horario=horario,
+                    descricao=descricao,
+                    origem=Agendamento.ORIGEM_MANUAL,
+                    nome_manual=nome,
+                    telefone_manual=telefone,
+                )
+
+                try:
+                    ag.full_clean()
+                    ag.save()
+
+                    if requer_horario_duplo(servico):
+                        horario_str = horario.strftime('%H:%M')
+                        if not is_excecao_almoco(horario_str):
+                            proximo = get_proximo_horario(horario_str, horarios_do_dia)
+                            if proximo is not None:
+                                proximo_time = datetime.strptime(proximo, '%H:%M').time()
+                                HorarioBloqueado.objects.update_or_create(
+                                    tenant=request.tenant,
+                                    data=data,
+                                    horario=proximo_time,
+                                    defaults={'tipo': 'bloqueio'},
+                                )
+
+                    messages.success(
+                        request,
+                        f'Agendamento manual de {nome} registrado com sucesso '
+                        f'para {data.strftime("%d/%m/%Y")} às {horario.strftime("%H:%M")}.',
+                    )
+                    return redirect('proximos_agendamentos', tenant_slug=request.tenant.slug)
+
+                except ValidationError as e:
+                    for field, errs in e.message_dict.items():
+                        for err in errs:
+                            form.add_error(None, err)
+
+                except IntegrityError:
+                    form.add_error('horario', 'Esse horário acabou de ser ocupado. Tente outro.')
+
+    else:
+        initial = {
+            'data':      data_str,
+            'nome':      request.GET.get('nome', ''),
+            'telefone':  request.GET.get('telefone', ''),
+            'servico':   request.GET.get('servico', ''),
+            'descricao': request.GET.get('descricao', ''),
+        }
+        form = AgendamentoManualForm(
+            initial=initial,
+            tenant=request.tenant,
+            horarios_disponiveis=horarios_do_dia,
+        )
+
+    return render(request, 'admin/agendamento_manual.html', {
+        'form': form,
+        'data_str': data_str,
+        'horarios_do_dia': horarios_do_dia,
+        'horarios_ocupados': horarios_ocupados,
+        'bloqueados': bloqueados_lista,
+        'horarios_disponiveis': horarios_disponiveis,
+    })
+
+# ── VIEWS DE CLIENTE ──────────────────────────────────────────────────────────
+
+def register(request, tenant_slug=None):
     if request.method == "POST":
-        username = request.POST.get("username")
-        telefone = request.POST.get("telefone")
-        password = request.POST.get("password")
+        username    = request.POST.get("username", "").strip()
+        telefone    = request.POST.get("telefone", "").strip()
+        password    = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
         if password != confirm_password:
             return render(request, 'clients/register.html', {'erro': 'As senhas não coincidem!'})
 
-        if User.objects.filter(username=username).exists():
+        # Backend concatena o slug — usuário só digita o nome
+        username_unico = f"{username}__{request.tenant.slug}"
+
+        if User.objects.filter(username=username_unico).exists():
             return render(request, 'clients/register.html', {'erro': 'Usuário já existe!'})
 
-        user = User.objects.create_user(username=username, password=password)
+        user = User.objects.create_user(username=username_unico, password=password)
 
-        cliente, _ = Cliente.objects.get_or_create(id_usuario=user)
+        cliente, _ = Cliente.objects.get_or_create(
+            id_usuario=user,
+            defaults={'tenant': request.tenant}
+        )
         cliente.telefone = telefone
         cliente.save()
 
-        return redirect('login')
+        return redirect('login', tenant_slug=request.tenant.slug)
 
     return render(request, 'clients/register.html')
 
-#Login
-def login_view(request):
+
+def login_view(request, tenant_slug=None):
     if request.method == "POST":
-        username = request.POST.get("username")
+        username = request.POST.get("username", "").strip()
         password = request.POST.get("password")
 
-        user = authenticate(request, username=username, password=password)
+        # Backend monta o username completo
+        username_unico = f"{username}__{request.tenant.slug}"
+
+        user = authenticate(request, username=username_unico, password=password)
 
         if user:
             login(request, user)
-
             if user.is_staff:
-                return redirect('painel_admin')  
+                return redirect('painel_admin', tenant_slug=request.tenant.slug)
             else:
-                return redirect('home')
+                return redirect('home', tenant_slug=request.tenant.slug)
 
-        return render(request, 'clients/login.html', {'erro': 'Login inválido! Verifique os dados da conta ou Crie uma!'})
+        return render(request, 'clients/login.html', {
+            'erro': 'Login inválido! Verifique os dados da conta ou crie uma!'
+        })
 
     return render(request, 'clients/login.html')
 
-#Logout
-def logout_view(request):
+def logout_view(request, tenant_slug=None):
+    slug = request.tenant.slug
     logout(request)
-    return redirect('login')
+    return redirect('login', tenant_slug=slug)
 
-#Campo "Esqueci minha senha"
-def esqueci_senha(request):
+
+def esqueci_senha(request, tenant_slug=None):
     form = IdentificarUsuarioForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        nome = form.cleaned_data["nome"]
+        nome     = form.cleaned_data["nome"]
         telefone = form.cleaned_data["telefone"]
 
-        usuario = User.objects.filter(username__iexact=nome).first()
+        # Backend monta o username completo
+        username_unico = f"{nome}__{request.tenant.slug}"
+        usuario = User.objects.filter(username__iexact=username_unico).first()
 
         def apenas_digitos(valor):
             return re.sub(r'\D', '', valor or '')
@@ -782,17 +1042,18 @@ def esqueci_senha(request):
             form.add_error(None, "Dados não encontrados. Verifique nome e telefone.")
             return render(request, "clients/esqueci_senha.html", {"form": form})
 
-        request.session["redefinir_nome"] = usuario.username
-        return redirect("redefinir_senha")
+        request.session["redefinir_nome"] = username_unico  # salva o username completo
+        return redirect("redefinir_senha", tenant_slug=request.tenant.slug)
 
     return render(request, "clients/esqueci_senha.html", {"form": form})
 
-def redefinir_senha(request):
-    nome = request.session.get("redefinir_nome")
+
+def redefinir_senha(request, tenant_slug=None):
+    nome = request.session.get("redefinir_nome")  # já vem com o slug
 
     if not nome:
         messages.error(request, "Sessão expirada. Comece novamente.")
-        return redirect("esqueci_senha")
+        return redirect("esqueci_senha", tenant_slug=request.tenant.slug)
 
     form = RedefinirSenhaForm(request.POST or None)
 
@@ -804,57 +1065,60 @@ def redefinir_senha(request):
             usuario.set_password(nova_senha)
             usuario.save()
             del request.session["redefinir_nome"]
-            messages.success(request, "Senha redefinida com sucesso! Pressione o botão 'Voltar para o login' e entre com sua nova senha!")
-            #return redirect("login")
+            messages.success(request, "Senha redefinida com sucesso! Entre com sua nova senha.")
         else:
             messages.error(request, "Usuário não encontrado.")
-            return redirect("esqueci_senha")
+            return redirect("esqueci_senha", tenant_slug=request.tenant.slug)
 
-    return render(request, "clients/redefinir_senha.html", {"form": form, "nome": nome})
+    # Exibe o nome sem o sufixo do tenant para o usuário
+    nome_exibicao = nome.split('__')[0] if '__' in nome else nome
 
-#Home
+    return render(request, "clients/redefinir_senha.html", {
+        "form": form,
+        "nome": nome_exibicao,
+    })
+
+
 @login_required
-def home(request):
+def home(request, tenant_slug=None):
     if request.user.is_staff:
-        return redirect('painel_admin')  # admin vai pro painel
+        return redirect('painel_admin', tenant_slug=request.tenant.slug)
 
     notificacoes_pendentes = []
-    if request.user.is_authenticated:
-        try:
-            cliente = Cliente.objects.get(id_usuario=request.user)
-            notificacoes_pendentes = list(
-                NotificacaoExclusao.objects.filter(cliente=cliente, visualizado=False)
-                .order_by('criado_em')
-            )
-        except Cliente.DoesNotExist:
-            pass
+    try:
+        cliente = Cliente.objects.get(tenant=request.tenant, id_usuario=request.user)
+        notificacoes_pendentes = list(
+            NotificacaoExclusao.objects.filter(cliente=cliente, visualizado=False)
+            .order_by('criado_em')
+        )
+    except Cliente.DoesNotExist:
+        pass
 
     return render(request, 'clients/home.html', {
         'notificacoes_pendentes': notificacoes_pendentes
     })
 
-#Criar agendamentos
+
 @login_required
-def criar_agendamento(request):
-
+def criar_agendamento(request, tenant_slug=None):
     if request.user.is_staff:
-        return redirect('painel_admin')
+        return redirect('painel_admin', tenant_slug=request.tenant.slug)
 
-    cliente, _ = Cliente.objects.get_or_create(id_usuario=request.user)
+    cliente, _ = Cliente.objects.get_or_create(
+    id_usuario=request.user,
+    defaults={'tenant': request.tenant}
+)
 
-    # ── Bloqueio de cliente ─────────────────────────────────────────────
     if cliente.bloqueado:
         return render(request, 'clients/cliente_bloqueado.html')
-    # ───────────────────────────────────────────────────────────────────
 
     servico_id = request.session.get("servico_id")
 
     if not servico_id:
-        return redirect("escolher_servico")
+        return redirect("escolher_servico", tenant_slug=request.tenant.slug)
 
-    servico = get_object_or_404(Servico, id=servico_id, ativo=True)
+    servico = get_object_or_404(Servico, tenant=request.tenant, id=servico_id, ativo=True)
 
-    # Detecta se esse serviço precisa de dois horários consecutivos
     duplo = requer_horario_duplo(servico)
 
     data_selecionada = request.GET.get("data") or request.POST.get("data")
@@ -864,14 +1128,17 @@ def criar_agendamento(request):
     horarios_ocupados = []
 
     if data_convertida:
-        agendamentos_do_dia = Agendamento.objects.filter(data=data_convertida)
+        agendamentos_do_dia = Agendamento.objects.filter(
+            tenant=request.tenant,
+            data=data_convertida)
         horarios_ocupados = [
             ag.horario.strftime("%H:%M") for ag in agendamentos_do_dia
         ]
 
-    # ─── CONSULTA ÚNICA — reutilizada em todo o resto da view ───
     bloqueios = (
-        HorarioBloqueado.objects.filter(data=data_convertida)
+        HorarioBloqueado.objects.filter(
+            tenant=request.tenant,
+            data=data_convertida)
         if data_convertida
         else HorarioBloqueado.objects.none()
     )
@@ -880,7 +1147,6 @@ def criar_agendamento(request):
         horario__isnull=True,
         tipo='bloqueio'
     ).exists()
-    # ────────────────────────────────────────────────────────────
 
     if request.method == "POST":
         form = AgendamentoForm(request.POST)
@@ -889,6 +1155,7 @@ def criar_agendamento(request):
         ja_existe = False
         if data_convertida and horario_selecionado:
             ja_existe = Agendamento.objects.filter(
+                tenant=request.tenant,
                 data=data_convertida,
                 horario=horario_selecionado
             ).exists()
@@ -911,20 +1178,18 @@ def criar_agendamento(request):
             if (dia_bloqueado and not horario_liberado) or horario_bloqueado:
                 bloqueado = True
 
-        # ── Validação do horário duplo ──────────────────────────────────
         erro_duplo = None
         if duplo and horario_selecionado and data_convertida and not bloqueado and not ja_existe:
             if not is_excecao_almoco(horario_selecionado):
                 proximo = get_proximo_horario(horario_selecionado, horarios)
 
                 if proximo is not None:
-                    # Verifica se o próximo está ocupado por agendamento
                     proximo_ocupado_ag = Agendamento.objects.filter(
+                        tenant=request.tenant,
                         data=data_convertida,
                         horario=datetime.strptime(proximo, "%H:%M").time()
                     ).exists()
 
-                    # Verifica se o próximo está bloqueado manualmente
                     proximo_time = datetime.strptime(proximo, "%H:%M").time()
                     proximo_bloqueado_manual = bloqueios.filter(
                         horario=proximo_time,
@@ -945,8 +1210,7 @@ def criar_agendamento(request):
                             f"({horario_selecionado} e {proximo}), "
                             f"mas {proximo} já está ocupado. Escolha outro horário."
                         )
-                # Se proximo is None = último horário do dia → pode agendar normalmente
-        # ────────────────────────────────────────────────────────────────
+
         if bloqueado:
             form.add_error("horario", "Este horário está bloqueado.")
         elif ja_existe:
@@ -954,17 +1218,15 @@ def criar_agendamento(request):
         elif erro_duplo:
             form.add_error("horario", erro_duplo)
         elif data_convertida and horario_selecionado and is_horario_dentro_24h(data_convertida, horario_selecionado):
-            # ── Validação de antecedência mínima (24h) — camada da view ──
-            from datetime import timedelta
             limite = timezone.localtime() + timedelta(hours=24)
             form.add_error(
                 "horario",
                 f"Agendamentos devem ser feitos com pelo menos 24 horas de antecedência. "
                 f"O horário mais cedo disponível é {limite.strftime('%d/%m/%Y às %H:%M')}."
             )
-            # ─────────────────────────────────────────────────────────────        
         elif form.is_valid():
             agendamento = form.save(commit=False)
+            agendamento.tenant = request.tenant
             agendamento.cliente = cliente
             agendamento.servico = servico
 
@@ -972,22 +1234,21 @@ def criar_agendamento(request):
                 agendamento.full_clean()
                 agendamento.save()
 
-                # ── Se for serviço duplo, bloqueia o próximo horário ──
                 if duplo and not is_excecao_almoco(horario_selecionado):
                     proximo = get_proximo_horario(horario_selecionado, horarios)
                     if proximo is not None:
                         proximo_time = datetime.strptime(proximo, "%H:%M").time()
                         HorarioBloqueado.objects.update_or_create(
+                            tenant=request.tenant,
                             data=data_convertida,
                             horario=proximo_time,
                             defaults={"tipo": "bloqueio"}
                         )
-                # ─────────────────────────────────────────────────────
 
                 request.session.pop("servico_id", None)
-                return redirect('listar_agendamentos')
+                return redirect('listar_agendamentos', tenant_slug=request.tenant.slug)
 
-            except ValidationError as e: 
+            except ValidationError as e:
                 for field, errors in e.message_dict.items():
                     for error in errors:
                         form.add_error(field, error)
@@ -997,21 +1258,15 @@ def criar_agendamento(request):
     else:
         form = AgendamentoForm(initial={"data": data_selecionada})
 
-    # ── Monta lista de horários indisponíveis para o template ──────────
-    # Inclui: ocupados por agendamento, bloqueados manualmente,
-    # dentro das próximas 24h (regra de antecedência mínima),
-    # e horários anteriores que ficariam inválidos por causa do duplo.
     bloqueados = []
     horarios_menos_24h = []
 
     for h in horarios:
         horario_time = datetime.strptime(h, "%H:%M").time()
 
-        # ── Regra de antecedência mínima de 24h ──
         if data_convertida and is_horario_dentro_24h(data_convertida, h):
             horarios_menos_24h.append(h)
             continue
-        # ─────────────────────────────────────────
 
         horario_bloqueado_manual = bloqueios.filter(
             horario=horario_time,
@@ -1026,8 +1281,6 @@ def criar_agendamento(request):
         if (dia_bloqueado and not horario_liberado_manual) or horario_bloqueado_manual:
             bloqueados.append(h)
         elif duplo and not is_excecao_almoco(h):
-            # Se for serviço duplo: verifica se o PRÓXIMO está ocupado/bloqueado
-            # para marcar o horário ATUAL como indisponível
             proximo = get_proximo_horario(h, horarios)
 
             if proximo is not None:
@@ -1049,8 +1302,6 @@ def criar_agendamento(request):
 
                 if proximo_indisponivel:
                     bloqueados.append(h)
-            # Se proximo is None = último horário → não bloqueia (regra do último horário)
-    # ────────────────────────────────────────────────────────────────────
 
     return render(request, 'clients/agendar.html', {
         'form': form,
@@ -1063,26 +1314,32 @@ def criar_agendamento(request):
         'horarios_menos_24h': horarios_menos_24h,
     })
 
-#Listar agendamentos
+
 @login_required
-def listar_agendamentos(request):
+def listar_agendamentos(request, tenant_slug=None):
+    cliente, _ = Cliente.objects.get_or_create(
+    id_usuario=request.user,
+    defaults={'tenant': request.tenant}
+)
 
-    cliente, _ = Cliente.objects.get_or_create(id_usuario=request.user)
-
-    agendamentos = Agendamento.objects.filter(cliente=cliente).order_by('data', 'horario')
+    agendamentos = Agendamento.objects.filter(
+        tenant=request.tenant, cliente=cliente).order_by('data', 'horario')
 
     return render(request, 'clients/lista.html', {
         'agendamentos': agendamentos
     })
 
-@login_required
-def excluir_agendamento(request, id):
-    cliente, _ = Cliente.objects.get_or_create(id_usuario=request.user)
 
-    agendamento = get_object_or_404(Agendamento, id=id, cliente=cliente)
+@login_required
+def excluir_agendamento(request, tenant_slug=None, id=None):
+    cliente, _ = Cliente.objects.get_or_create(
+    id_usuario=request.user,
+    defaults={'tenant': request.tenant}
+)
+
+    agendamento = get_object_or_404(Agendamento, tenant=request.tenant, id=id, cliente=cliente)
 
     if request.method == 'POST':
-        # ── Se era serviço duplo, remove o bloqueio do próximo horário ──
         if agendamento.servico and requer_horario_duplo(agendamento.servico):
             horario_str = agendamento.horario.strftime("%H:%M")
             if not is_excecao_almoco(horario_str):
@@ -1091,29 +1348,32 @@ def excluir_agendamento(request, id):
                 if proximo is not None:
                     proximo_time = datetime.strptime(proximo, "%H:%M").time()
                     HorarioBloqueado.objects.filter(
+                        tenant=request.tenant,
                         data=agendamento.data,
                         horario=proximo_time,
                         tipo="bloqueio"
                     ).delete()
-        # ────────────────────────────────────────────────────────────────
 
         agendamento.delete()
-        return redirect('listar_agendamentos')
-    
+        return redirect('listar_agendamentos', tenant_slug=request.tenant.slug)
+
     return render(request, 'clients/confirmar_exclusao.html', {
         'agendamento': agendamento
     })
 
+
 @login_required
-def escolher_servico(request):
-    servicos = Servico.objects.filter(ativo=True)
+def escolher_servico(request, tenant_slug=None):
+    servicos = Servico.objects.filter(tenant=request.tenant, ativo=True)
     erro = None
 
-    # Bloqueia cliente impedido de agendar
-    cliente, _ = Cliente.objects.get_or_create(id_usuario=request.user)
+    cliente, _ = Cliente.objects.get_or_create(
+    id_usuario=request.user,
+    defaults={'tenant': request.tenant}
+)
     if cliente.bloqueado:
         return render(request, 'clients/cliente_bloqueado.html')
-    
+
     if request.method == "POST":
         servico_id = request.POST.get("servico")
 
@@ -1121,287 +1381,41 @@ def escolher_servico(request):
             erro = "Selecione um serviço para continuar."
         else:
             request.session["servico_id"] = servico_id
-            return redirect("agendar")
+            return redirect("agendar", tenant_slug=request.tenant.slug)
 
     return render(request, "clients/servicos.html", {
         "servicos": servicos,
         "erro": erro,
     })
 
-# ── GESTÃO DE CLIENTES (admin) ────────────────────────────────────────────────
-
-@staff_member_required
-def listar_clientes(request):
-    """
-    Painel administrativo de clientes.
-    Exibe nome, telefone, total de agendamentos, total de ausências,
-    status de bloqueio e data de cadastro.
-    Suporta busca por nome via query string ?q=.
-    """
-    q = request.GET.get('q', '').strip()
-
-    clientes_qs = Cliente.objects.select_related('id_usuario').all()
-
-    if q:
-        clientes_qs = clientes_qs.filter(id_usuario__username__icontains=q)
-
-    clientes_qs = clientes_qs.order_by('id_usuario__username')
-
-    clientes_data = []
-    for cliente in clientes_qs:
-        total_agendamentos = Agendamento.objects.filter(cliente=cliente).count()
-        total_ausencias = Agendamento.objects.filter(cliente=cliente, status='ausente').count()
-        clientes_data.append({
-            'cliente': cliente,
-            'total_agendamentos': total_agendamentos,
-            'total_ausencias': total_ausencias,
-        })
-
-    return render(request, 'admin/listar_clientes.html', {
-        'clientes_data': clientes_data,
-        'q': q,
-        'total_clientes': clientes_qs.count(),
-    })
-
-
-@staff_member_required
-def bloquear_cliente(request, user_id):
-    """Bloqueia um cliente, impedindo novos agendamentos."""
-    if request.method == 'POST':
-        cliente = get_object_or_404(Cliente, id_usuario__id=user_id)
-        # Nunca bloqueia staff/admin
-        if not cliente.id_usuario.is_staff:
-            cliente.bloqueado = True
-            cliente.save()
-            messages.success(
-                request,
-                f'Cliente "{cliente.id_usuario.username}" foi bloqueado com sucesso.'
-            )
-        else:
-            messages.error(request, 'Não é possível bloquear um administrador.')
-    return redirect('listar_clientes')
-
-
-@staff_member_required
-def desbloquear_cliente(request, user_id):
-    """Desbloqueia um cliente previamente bloqueado."""
-    if request.method == 'POST':
-        cliente = get_object_or_404(Cliente, id_usuario__id=user_id)
-        cliente.bloqueado = False
-        cliente.save()
-        messages.success(
-            request,
-            f'Cliente "{cliente.id_usuario.username}" foi desbloqueado com sucesso.'
-        )
-    return redirect('listar_clientes')
-
-
-@staff_member_required
-def excluir_cliente(request, user_id):
-    """
-    Exclui um cliente e sua conta de usuário.
-    Todos os agendamentos são removidos em cascata pelo ORM (CASCADE no FK).
-    Exige confirmação via POST para evitar exclusões acidentais.
-    """
-    user = get_object_or_404(User, id=user_id, is_staff=False)
-
-    if request.method == 'POST':
-        username = user.username
-        # Deleta o User — o Cliente e os Agendamentos são removidos em cascata
-        user.delete()
-        messages.success(request, f'Conta de "{username}" foi excluída com sucesso.')
-        return redirect('listar_clientes')
-
-    # GET → página de confirmação
-    cliente = get_object_or_404(Cliente, id_usuario=user)
-    total_agendamentos = Agendamento.objects.filter(cliente=cliente).count()
-    return render(request, 'admin/confirmar_exclusao_cliente.html', {
-        'user': user,
-        'cliente': cliente,
-        'total_agendamentos': total_agendamentos,
-    })
-
-# ──────────────────────────────────────────────────────────────────────────────
 
 @login_required
-def perfil(request):
+def perfil(request, tenant_slug=None):
     return render(request, 'clients/perfil.html')
 
+
 @login_required
-def sobre(request):
+def sobre(request, tenant_slug=None):
     return render(request, 'clients/sobre.html')
 
+
 @login_required
-def suporte(request):
+def suporte(request, tenant_slug=None):
     return render(request, 'clients/suporte.html')
 
-def tutorial(request):
+
+def tutorial(request, tenant_slug=None):
     return render(request, 'clients/tutorial.html')
 
-# ── AGENDAMENTO MANUAL (admin) ────────────────────────────────────────────────
 
-@staff_member_required
-def agendamento_manual(request):
-    """
-    Permite ao administrador registrar um agendamento sem criar conta de cliente.
-    Respeita todas as regras de negócio: conflito de horário, bloqueios,
-    serviço duplo. A regra de 24h é dispensada para agendamentos manuais.
-    """
-    data_str = request.GET.get('data') or request.POST.get('data') or ''
-    data_convertida = converter_data(data_str) if data_str else None
+# ── UTILITÁRIOS INTERNOS ──────────────────────────────────────────────────────
 
-    horarios_do_dia = gerar_horarios(data_convertida)
-
-    # ── Calcula horários indisponíveis para o dia selecionado ──
-    horarios_ocupados = []
-    bloqueados_lista = []
-
-    bloqueios = (
-        HorarioBloqueado.objects.filter(data=data_convertida)
-        if data_convertida
-        else HorarioBloqueado.objects.none()
-    )
-
-    dia_bloqueado = bloqueios.filter(horario__isnull=True, tipo='bloqueio').exists()
-
-    if data_convertida:
-        horarios_ocupados = list(
-            Agendamento.objects.filter(data=data_convertida)
-            .values_list('horario', flat=True)
-        )
-        horarios_ocupados = [h.strftime('%H:%M') for h in horarios_ocupados]
-
-    for h in horarios_do_dia:
-        horario_time = datetime.strptime(h, '%H:%M').time()
-
-        bloq_manual = bloqueios.filter(horario=horario_time, tipo='bloqueio').exists()
-        lib_manual  = bloqueios.filter(horario=horario_time, tipo='liberado').exists()
-
-        if (dia_bloqueado and not lib_manual) or bloq_manual or h in horarios_ocupados:
-            bloqueados_lista.append(h)
-
-    horarios_disponiveis = [h for h in horarios_do_dia if h not in bloqueados_lista]
-
-    if request.method == 'POST':
-        form = AgendamentoManualForm(
-            request.POST,
-            horarios_disponiveis=horarios_do_dia,
-        )
-
-        if form.is_valid():
-            nome     = form.cleaned_data['nome'].strip()
-            telefone = form.cleaned_data['telefone'].strip()
-            servico  = form.cleaned_data['servico']
-            data     = form.cleaned_data['data']
-            horario  = form.cleaned_data['horario']
-            descricao = form.cleaned_data.get('descricao', '')
-
-            # ── Verifica conflito de horário ──
-            if Agendamento.objects.filter(data=data, horario=horario).exists():
-                form.add_error('horario', 'Esse horário já está ocupado.')
-
-            # ── Verifica bloqueio ──
-            elif _horario_esta_bloqueado(data, horario):
-                form.add_error('horario', 'Este horário está bloqueado na agenda.')
-
-            # ── Verifica duplo (próximo horário) ──
-            else:
-                duplo = requer_horario_duplo(servico)
-                if duplo:
-                    horario_str = horario.strftime('%H:%M')
-                    if not is_excecao_almoco(horario_str):
-                        proximo = get_proximo_horario(horario_str, horarios_do_dia)
-                        if proximo is not None:
-                            proximo_time = datetime.strptime(proximo, '%H:%M').time()
-                            proximo_ocupado = (
-                                Agendamento.objects.filter(data=data, horario=proximo_time).exists()
-                                or _horario_esta_bloqueado(data, proximo_time)
-                            )
-                            if proximo_ocupado:
-                                form.add_error(
-                                    'horario',
-                                    f'Este serviço ocupa dois horários consecutivos '
-                                    f'({horario_str} e {proximo}), '
-                                    f'mas {proximo} já está ocupado. Escolha outro horário.',
-                                )
-
-            if not form.errors:
-                ag = Agendamento(
-                    cliente=None,
-                    servico=servico,
-                    data=data,
-                    horario=horario,
-                    descricao=descricao,
-                    origem=Agendamento.ORIGEM_MANUAL,
-                    nome_manual=nome,
-                    telefone_manual=telefone,
-                )
-
-                try:
-                    ag.full_clean()
-                    ag.save()
-
-                    # Bloqueia próximo horário se serviço duplo
-                    if requer_horario_duplo(servico):
-                        horario_str = horario.strftime('%H:%M')
-                        if not is_excecao_almoco(horario_str):
-                            proximo = get_proximo_horario(horario_str, horarios_do_dia)
-                            if proximo is not None:
-                                proximo_time = datetime.strptime(proximo, '%H:%M').time()
-                                HorarioBloqueado.objects.update_or_create(
-                                    data=data,
-                                    horario=proximo_time,
-                                    defaults={'tipo': 'bloqueio'},
-                                )
-
-                    messages.success(
-                        request,
-                        f'Agendamento manual de {nome} registrado com sucesso '
-                        f'para {data.strftime("%d/%m/%Y")} às {horario.strftime("%H:%M")}.',
-                    )
-                    return redirect('proximos_agendamentos')
-
-                except ValidationError as e:
-                    for field, errs in e.message_dict.items():
-                        for err in errs:
-                            form.add_error(None, err)
-
-                except IntegrityError:
-                    form.add_error('horario', 'Esse horário acabou de ser ocupado. Tente outro.')
-
-    else:
-        # Preserva dados digitados antes do reload de data (vêm via GET)
-        initial = {
-            'data':      data_str,
-            'nome':      request.GET.get('nome', ''),
-            'telefone':  request.GET.get('telefone', ''),
-            'servico':   request.GET.get('servico', ''),
-            'descricao': request.GET.get('descricao', ''),
-        }
-        form = AgendamentoManualForm(
-            initial=initial,
-            horarios_disponiveis=horarios_do_dia,
-        )
-
-    return render(request, 'admin/agendamento_manual.html', {
-        'form': form,
-        'data_str': data_str,
-        'horarios_do_dia': horarios_do_dia,
-        'horarios_ocupados': horarios_ocupados,
-        'bloqueados': bloqueados_lista,
-        'horarios_disponiveis': horarios_disponiveis,
-    })
-
-
-def _horario_esta_bloqueado(data, horario):
-    """
-    Utilitário interno: retorna True se o horário (time ou str 'HH:MM')
-    estiver bloqueado na data informada, considerando bloqueio de dia inteiro.
-    """
+def _horario_esta_bloqueado(tenant, data, horario):
     if isinstance(horario, str):
         horario = datetime.strptime(horario, '%H:%M').time()
 
-    bloqueios = HorarioBloqueado.objects.filter(data=data)
+    bloqueios = HorarioBloqueado.objects.filter(tenant=tenant, data=data)
+
     dia_bloqueado = bloqueios.filter(horario__isnull=True, tipo='bloqueio').exists()
     bloq_manual   = bloqueios.filter(horario=horario, tipo='bloqueio').exists()
     lib_manual    = bloqueios.filter(horario=horario, tipo='liberado').exists()

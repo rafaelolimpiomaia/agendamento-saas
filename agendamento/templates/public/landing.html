@@ -1,0 +1,633 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agendamento Digital — Sistema de agendamento para salões</title>
+
+    <link rel="icon" href="{% static 'agendamento/scissors.svg' %}" type="image/svg+xml">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #0d6efd;
+            --blue-dark: #0a58ca;
+            --blue-light: #e7f1ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            color: #111827;
+            background: #ffffff;
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--blue);
+            text-decoration: none;
+        }
+
+        .navbar-brand i { font-size: 1.4rem; }
+
+        .btn-nav-login {
+            background: var(--blue-light);
+            color: var(--blue);
+            border: none;
+            border-radius: 10px;
+            padding: 9px 20px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: background 0.2s;
+        }
+
+        .btn-nav-login:hover { background: #d0e5ff; color: var(--blue); }
+        
+        
+        /* ── HERO ── */
+        .hero {
+            background: linear-gradient(135deg, #e7f1ff 0%, #f0f6ff 60%, #ffffff 100%);
+            padding: 80px 24px 72px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--blue-light);
+            color: var(--blue);
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            max-width: 680px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero h1 span { color: var(--blue); }
+
+        .hero p {
+            font-size: 1.05rem;
+            color: #4b5563;
+            max-width: 520px;
+            margin: 0 auto 32px;
+            line-height: 1.65;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary-hero {
+            background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 15px 32px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 20px rgba(13,110,253,0.3);
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .btn-primary-hero:hover { opacity: 0.9; transform: translateY(-2px); color: #fff; }
+
+        .btn-secondary-hero {
+            background: #fff;
+            color: var(--blue);
+            border: 2px solid var(--blue);
+            border-radius: 14px;
+            padding: 15px 32px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .btn-secondary-hero:hover { background: var(--blue-light); transform: translateY(-2px); color: var(--blue); }
+
+        /* ── PREÇO ── */
+        .price-section {
+            background: var(--blue);
+            padding: 48px 24px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .price-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .price-value {
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .price-value span {
+            font-size: 1.2rem;
+            font-weight: 600;
+            opacity: 0.85;
+            vertical-align: super;
+        }
+
+        .price-sub {
+            font-size: 0.92rem;
+            opacity: 0.8;
+            margin-bottom: 24px;
+        }
+
+        .price-features {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .price-feature {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.88rem;
+            opacity: 0.9;
+        }
+
+        .btn-price-cta {
+            background: #fff;
+            color: var(--blue);
+            border: none;
+            border-radius: 14px;
+            padding: 14px 36px;
+            font-size: 1rem;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s, transform 0.15s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .btn-price-cta:hover { opacity: 0.92; transform: translateY(-2px); color: var(--blue); }
+
+        /* ── BENEFÍCIOS ── */
+        .benefits-section {
+            padding: 72px 24px;
+            background: #f9fafb;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: clamp(1.4rem, 4vw, 1.9rem);
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-bottom: 48px;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .benefit-card {
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 28px 22px;
+            text-align: center;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .benefit-card:hover {
+            box-shadow: 0 12px 32px rgba(13,110,253,0.1);
+            transform: translateY(-3px);
+        }
+
+        .benefit-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--blue-light);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 1.5rem;
+            color: var(--blue);
+        }
+
+        .benefit-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .benefit-desc {
+            font-size: 0.85rem;
+            color: #6b7280;
+            line-height: 1.55;
+        }
+
+        /* ── FAQ ── */
+        .faq-section {
+            padding: 72px 24px;
+            background: #ffffff;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            border: 1.5px solid #e5e7eb;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 18px 20px;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.15s;
+        }
+
+        .faq-question:hover { background: #f9fafb; }
+
+        .faq-question.open { color: var(--blue); }
+
+        .faq-question .faq-chevron {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .faq-question.open .faq-chevron {
+            transform: rotate(180deg);
+            color: var(--blue);
+        }
+
+        .faq-answer {
+            display: none;
+            padding: 0 20px 18px;
+            font-size: 0.9rem;
+            color: #4b5563;
+            line-height: 1.65;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .faq-answer.show { display: block; }
+
+        /* ── LOGIN SECTION ── */
+        .login-section {
+            background: var(--blue-light);
+            padding: 56px 24px;
+            text-align: center;
+        }
+
+        .login-section h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .login-section p {
+            color: #4b5563;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+
+        .login-input-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .login-input {
+            flex: 1;
+            min-width: 200px;
+            border-radius: 12px;
+            border: 1.5px solid #d1d5db;
+            padding: 12px 16px;
+            font-size: 0.92rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .login-input:focus { border-color: var(--blue); }
+
+        .btn-login-ir {
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-login-ir:hover { background: var(--blue-dark); color: #fff; }
+
+        /* ── FOOTER ── */
+        .footer {
+            background: #0f172a;
+            color: #94a3b8;
+            text-align: center;
+            padding: 28px 24px;
+            font-size: 0.82rem;
+        }
+
+        .footer a {
+            color: #94a3b8;
+            text-decoration: none;
+        }
+
+        .footer a:hover { color: #fff; }
+
+        /* ── MOBILE ── */
+        @media (max-width: 576px) {
+            .hero { padding: 56px 20px 52px; }
+            .price-features { flex-direction: column; align-items: center; gap: 10px; }
+            .benefits-section, .faq-section { padding: 52px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <i class="bi bi-scissors"></i>
+        Agendamento Digital
+    </a>
+    <a href="#login" class="btn-nav-login">
+        <i class="bi bi-box-arrow-in-right"></i>
+        Acessar meu salão
+    </a>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+    <div class="hero-badge">
+        <i class="bi bi-stars"></i>
+        Para salões, barbearias e studios
+    </div>
+    <h1>O sistema de agendamento que seu <span>negócio merece</span></h1>
+    <p>Chega de caderno, grupo de WhatsApp e confusão. Seus clientes agendam online, você gerencia tudo em um só lugar.</p>
+    <div class="hero-buttons">
+        <a href="{% url 'cadastro_salao' %}" class="btn-primary-hero">
+            <i class="bi bi-rocket-takeoff-fill"></i>
+            Começar agora
+        </a>
+        <a href="#beneficios" class="btn-secondary-hero">
+            <i class="bi bi-play-circle"></i>
+            Saiba mais
+        </a>
+    </div>
+</section>
+
+<!-- ── PREÇO ── -->
+<section class="price-section">
+    <div class="price-label">Plano único — sem surpresas</div>
+    <div class="price-value"><span>R$</span>89<span>/mês</span></div>
+    <div class="price-sub">Cancele quando quiser. Sem fidelidade.</div>
+    <div class="price-features">
+        <div class="price-feature"><i class="bi bi-check-circle-fill"></i> Agendamentos ilimitados</div>
+        <div class="price-feature"><i class="bi bi-check-circle-fill"></i> Clientes ilimitados</div>
+        <div class="price-feature"><i class="bi bi-check-circle-fill"></i> Suporte via WhatsApp</div>
+        <div class="price-feature"><i class="bi bi-check-circle-fill"></i> Atualizações incluídas</div>
+    </div>
+    <a href="{% url 'cadastro_salao' %}" class="btn-price-cta">
+        <i class="bi bi-check-circle-fill"></i>
+        Quero começar por R$89/mês
+    </a>
+</section>
+
+<!-- ── BENEFÍCIOS ── -->
+<section class="benefits-section" id="beneficios">
+    <h2 class="section-title">Tudo que você precisa</h2>
+    <p class="section-subtitle">Funcionalidades pensadas para o dia a dia do seu negócio</p>
+    <div class="benefits-grid">
+        <div class="benefit-card">
+            <div class="benefit-icon"><i class="bi bi-calendar-check"></i></div>
+            <div class="benefit-title">Agenda online 24h</div>
+            <div class="benefit-desc">Seus clientes agendam a qualquer hora, mesmo quando você está dormindo.</div>
+        </div>
+        <div class="benefit-card">
+            <div class="benefit-icon"><i class="bi bi-bell-fill"></i></div>
+            <div class="benefit-title">Notificações automáticas</div>
+            <div class="benefit-desc">Clientes são avisados automaticamente sobre alterações nos agendamentos.</div>
+        </div>
+        <div class="benefit-card">
+            <div class="benefit-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="benefit-title">Controle financeiro</div>
+            <div class="benefit-desc">Relatórios de faturamento dos últimos 31 dias com gráficos e indicadores.</div>
+        </div>
+        <div class="benefit-card">
+            <div class="benefit-icon"><i class="bi bi-phone"></i></div>
+            <div class="benefit-title">Funciona no celular</div>
+            <div class="benefit-desc">Interface responsiva — seus clientes agendam direto do smartphone sem instalar nada.</div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section style="padding: 72px 24px; background: #f9fafb;">
+    <div style="max-width: 720px; margin: 0 auto;">
+        <h2 class="section-title">Perguntas frequentes</h2>
+        <p class="section-subtitle">Tire suas dúvidas antes de começar</p>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                Como meus clientes vão agendar?
+                <i class="bi bi-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer">
+                Você compartilha o link do seu salão (ex: agendamentodigital.com.br/seu-salao) e seus clientes acessam pelo celular ou computador para escolher o serviço, data e horário disponível.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                Preciso instalar algum aplicativo?
+                <i class="bi bi-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer">
+                Não. O sistema funciona direto pelo navegador — tanto para você quanto para seus clientes. Nada para instalar.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                Posso bloquear horários e dias de folga?
+                <i class="bi bi-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer">
+                Sim. Você pode bloquear horários específicos ou dias inteiros direto pelo painel administrativo. Os horários bloqueados não aparecem como disponíveis para os clientes.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                E se eu precisar cancelar um agendamento?
+                <i class="bi bi-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer">
+                Você cancela pelo painel e o cliente recebe uma notificação automática no próximo acesso, informando que o agendamento foi cancelado.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                Como faço para contratar?
+                <i class="bi bi-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer">
+                Entre em contato pelo WhatsApp para receber seu código de acesso. Após o pagamento, você recebe o código e pode criar sua conta em minutos.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                Tem fidelidade ou contrato?
+                <i class="bi bi-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-answer">
+                Não. O plano é mensal e você pode cancelar quando quiser, sem multa e sem burocracia.
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="login-section" id="login">
+    <h2>Já tem uma conta?</h2>
+    <p>Digite o nome de acesso e senha do seu salão para entrar</p>
+    <form method="POST" action="{% url 'login_proprietario' %}">
+        {% csrf_token %}
+        {% if erro_login %}
+            <div style="color:#ef4444; font-size:0.85rem; margin-bottom:10px;">
+                <i class="bi bi-exclamation-circle-fill"></i> {{ erro_login }}
+            </div>
+        {% endif %}
+        <div class="login-input-row">
+            <input type="text" name="slug" class="login-input" placeholder="Endereço-de-Acesso" required>
+            <input type="password" name="senha" class="login-input" placeholder="Senha" required>
+            <button type="submit" class="btn-login-ir">
+                <i class="bi bi-box-arrow-in-right"></i>
+                Entrar
+            </button>
+        </div>
+    </form>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+    <p>© 2025 Agendamento Digital — Todos os direitos reservados</p>
+    <p style="margin-top:6px;">
+        Dúvidas? <a href="https://wa.me/5583993024480" target="_blank">Fale conosco pelo WhatsApp</a>
+    </p>
+</footer>
+
+<script>
+    function toggleFaq(btn) {
+        const answer = btn.nextElementSibling;
+        const isOpen = answer.classList.contains('show');
+
+        // Fecha todos
+        document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('show'));
+        document.querySelectorAll('.faq-question').forEach(b => b.classList.remove('open'));
+
+        // Abre o clicado (se estava fechado)
+        if (!isOpen) {
+            answer.classList.add('show');
+            btn.classList.add('open');
+        }
+    }
+</script>
+
+</body>
+</html>

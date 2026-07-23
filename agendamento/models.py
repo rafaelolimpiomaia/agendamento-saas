@@ -3,23 +3,135 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import time
+from django.utils.text import slugify
+import secrets
+
+class Tenant(models.Model):
+    TIPO_CHOICES = [
+        ('salao',      'Salão de Beleza'),
+        ('barbearia',  'Barbearia'),
+        ('studio',     'Studio de Unhas'),
+        ('outro',      'Outro'),
+    ]
+
+    # ── Estabelecimento ───────────────────────────────────────
+    nome             = models.CharField(max_length=100)
+    slug             = models.SlugField(max_length=60, unique=True)
+    tipo_negocio     = models.CharField(max_length=20, choices=TIPO_CHOICES, default='salao')
+
+    # ── Dono ─────────────────────────────────────────────────
+    nome_responsavel = models.CharField(max_length=100, default='')
+    telefone         = models.CharField(max_length=20)
+    email            = models.EmailField()
+
+    # ── Termos ───────────────────────────────────────────────
+    termos_aceitos    = models.BooleanField(default=False)
+    termos_aceitos_em = models.DateTimeField(null=True, blank=True)
+
+    # ── Controle ─────────────────────────────────────────────
+    ativo     = models.BooleanField(default=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    admin     = models.OneToOneField(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='tenant_admin',
+        null=True, blank=True,
+    )
+
+    def __str__(self):
+        return self.nome
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nome)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Salão'
+        verbose_name_plural = 'Salões'
+
+class CodigoConvite(models.Model):
+    codigo    = models.CharField(max_length=20, unique=True)
+    usado     = models.BooleanField(default=False)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    usado_por = models.OneToOneField(
+        'Tenant',
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='codigo_convite',
+    )
+
+    def __str__(self):
+        status = f"usado por {self.usado_por.nome}" if self.usado else "disponível"
+        return f"{self.codigo} — {status}"
+
+    @classmethod
+    def gerar(cls):
+        """Gera e salva um novo código aleatório."""
+        codigo = secrets.token_urlsafe(8)
+        return cls.objects.create(codigo=codigo)
+
+    class Meta:
+        verbose_name = 'Código de Convite'
+        verbose_name_plural = 'Códigos de Convite'
+
+
+class ConfiguracaoSalao(models.Model):
+    PUBLICO_CHOICES = [
+        ('homens',   'Homens'),
+        ('mulheres', 'Mulheres'),
+        ('ambos',    'Homens e Mulheres'),
+    ]
+
+    TIPO_CHOICES = [
+        ('salao',      'Salão de Beleza'),
+        ('barbearia',  'Barbearia'),
+        ('studio',     'Studio de Unhas'),
+        ('esmalteria', 'Esmalteria'),
+        ('outro',      'Outro'),
+    ]
+
+    tenant       = models.OneToOneField(Tenant, on_delete=models.CASCADE, related_name='configuracao')
+    nome_exibicao = models.CharField(max_length=100, blank=True, default='')
+    tipo_negocio  = models.CharField(max_length=20, choices=TIPO_CHOICES, blank=True, default='')
+    telefone      = models.CharField(max_length=20, blank=True, default='')
+    publico       = models.CharField(max_length=20, choices=PUBLICO_CHOICES, default='ambos', blank=True)
+    endereco      = models.CharField(max_length=200, blank=True, default='')
+    instagram     = models.CharField(max_length=60, blank=True, default='')
+    cor_primaria  = models.CharField(max_length=7, blank=True, default='#0d6efd')
+
+    def __str__(self):
+        return f'Configuração — {self.tenant.nome}'
+
+    class Meta:
+        verbose_name = 'Configuração do Salão'
+        verbose_name_plural = 'Configurações dos Salões'
 
 
 class Cliente(models.Model):
-    id_usuario = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        primary_key=True
-    )
-    telefone = models.CharField(max_length=20,)
-    endereco = models.CharField(max_length=60,)
-    bloqueado = models.BooleanField(default=False)
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name='clientes', null=True
+    )  # <-- NOVO
+    id_usuario = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    telefone   = models.CharField(max_length=20)
+    endereco   = models.CharField(max_length=60)
+    bloqueado  = models.BooleanField(default=False)
+
+    @property
+    def nome_exibicao(self):
+        """Retorna o nome do cliente sem o sufixo __slug do tenant."""
+        username = self.id_usuario.username
+        return username.split('__')[0] if '__' in username else username
 
     def __str__(self):
-        return self.id_usuario.username
+        return self.nome_exibicao
+
 
 
 class Agendamento(models.Model):
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name='agendamentos', null=True
+    )  # <-- NOVO
 
     ORIGEM_ONLINE = 'online'
     ORIGEM_MANUAL = 'manual'
@@ -73,8 +185,8 @@ class Agendamento(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['data', 'horario'],
-                name='unique_agendamento_data_horario'
+                fields=['tenant', 'data', 'horario'],  # tenant entra na constraint
+                name='unique_agendamento_tenant_data_horario'
             )
         ]
 
@@ -89,8 +201,8 @@ class Agendamento(models.Model):
         if self.is_manual:
             return self.nome_manual or '—'
         if self.cliente:
-            return self.cliente.id_usuario.get_full_name() or self.cliente.id_usuario.username
-        return '—'
+            return self.cliente.nome_exibicao
+        return self.nome_manual or "—"
 
     @property
     def telefone_cliente(self):
@@ -149,18 +261,15 @@ class Agendamento(models.Model):
 
 
 class Servico(models.Model):
-    nome = models.CharField(max_length=100)
-    descricao = models.CharField(max_length=200, blank=True)
-    ativo = models.BooleanField(default=True)
-    preco = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name='servicos', null=True
+    )  # <-- NOVO
+    nome          = models.CharField(max_length=100)
+    descricao     = models.CharField(max_length=200, blank=True)
+    ativo         = models.BooleanField(default=True)
+    preco         = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     duracao_minutos = models.PositiveIntegerField(default=60)
-    horario_duplo = models.BooleanField(
-        default=False,
-        verbose_name="Ocupa dois horários consecutivos"
-    )
-
-    def __str__(self):
-        return f"{self.nome} - {self.preco}"
+    horario_duplo = models.BooleanField(default=False)
 
 
 class NotificacaoExclusao(models.Model):
@@ -180,12 +289,14 @@ class NotificacaoExclusao(models.Model):
 
 
 class HorarioBloqueado(models.Model):
-    data = models.DateField()
+    tenant = models.ForeignKey(
+        Tenant, on_delete=models.CASCADE, related_name='horarios_bloqueados', null=True
+    )  # <-- NOVO
+    data    = models.DateField()
     horario = models.TimeField(null=True, blank=True)
-    tipo = models.CharField(max_length=10, choices=[
-        ('bloqueio', 'Bloqueio'),
-        ('liberado', 'Liberado')
+    tipo    = models.CharField(max_length=10, choices=[
+        ('bloqueio', 'Bloqueio'), ('liberado', 'Liberado')
     ])
 
     class Meta:
-        unique_together = ['data', 'horario']
+        unique_together = ['tenant', 'data', 'horario']  # tenant na unique

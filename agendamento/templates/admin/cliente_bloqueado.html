@@ -141,14 +141,14 @@ body {
     <h1 class="confirm-title">Excluir conta?</h1>
     <p class="confirm-desc">
         Você está prestes a excluir permanentemente a conta de
-        <strong>{{ user.username }}</strong>.
+        <strong>{{ cliente.nome_exibicao }}</strong>.
         Essa ação não pode ser desfeita.
     </p>
 
     <div class="info-box">
         <div class="info-row">
             <i class="bi bi-person-fill"></i>
-            <span>Cliente: <strong>{{ user.username }}</strong></span>
+            <span>Cliente: <strong>{{ cliente.nome_exibicao }}</strong></span>
         </div>
         {% if cliente.telefone %}
         <div class="info-row">
@@ -170,7 +170,7 @@ body {
     </div>
 
     <div class="actions">
-        <a href="{% url 'listar_clientes' %}" class="btn-cancel">
+        <a href="{% url 'listar_clientes' tenant_slug=tenant_slug %}" class="btn-cancel">
             <i class="bi bi-arrow-left"></i> Cancelar
         </a>
         <form method="post" style="flex:1; margin:0;">

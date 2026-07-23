@@ -53,11 +53,18 @@
     }
 
     .btn-login {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
         height: 48px;
         border-radius: 12px;
         font-weight: 600;
         font-size: 1rem;
     }
+
+    .btn-login:hover {
+    background: #255cc0 !important;
+    border-color: #255cc0 !important;
+}
 
     .brand-icon {
         width: 70px;
@@ -192,11 +199,11 @@
 
                     <div class="text-center mt-4 register-link">
                         <span class="text-muted">Não tem conta?</span>
-                        <a href="/register/">Criar conta</a>
+                        <a href="{% url 'register' tenant_slug=tenant_slug %}">Criar conta</a>
                     </div>
 
                     <div class="password-bnt">
-                        <a href="{% url 'esqueci_senha' %}">
+                        <a href="{% url 'esqueci_senha' tenant_slug=tenant_slug %}">
                             Esqueci minha senha
                         </a>
                     </div>
