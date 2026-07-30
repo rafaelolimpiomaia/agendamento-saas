@@ -14,12 +14,12 @@
 
     .main-card {
         width: 100%;
-        max-width: 720px;
+        max-width: 800px;
         margin: 0 auto;
         background: #f8f8f8;
         border-radius: 24px;
         padding: 28px 24px;
-        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 20px 45px rgba(0,0,0,0.15);
     }
 
     .page-header {
@@ -41,16 +41,6 @@
     }
 
     .page-title i { color: #0d6efd; }
-
-    .btn-back {
-        border-radius: 12px;
-        font-weight: 600;
-        padding: 10px 16px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-    }
 
     .section-label {
         font-size: 0.72rem;
@@ -84,14 +74,9 @@
         display: block;
     }
 
-    .form-hint {
-        font-size: 0.78rem;
-        color: #9ca3af;
-        margin-top: 4px;
-    }
+    .form-hint { font-size: 0.78rem; color: #9ca3af; margin-top: 4px; }
 
-    .form-control,
-    .form-select {
+    .form-control, .form-select {
         border-radius: 12px;
         border: 1.5px solid #e5e7eb;
         padding: 11px 14px;
@@ -102,335 +87,503 @@
         background: #fff;
     }
 
-    .form-control:focus,
-    .form-select:focus {
+    .form-control:focus, .form-select:focus {
         border-color: #0d6efd;
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
+        box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
         outline: none;
     }
 
-    .cor-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
+    .cor-wrapper { display: flex; align-items: center; gap: 12px; }
 
     .cor-input {
-        width: 56px;
-        height: 48px;
-        border-radius: 12px;
-        border: 1.5px solid #e5e7eb;
-        padding: 4px;
-        cursor: pointer;
-        background: #fff;
+        width: 56px; height: 48px;
+        border-radius: 12px; border: 1.5px solid #e5e7eb;
+        padding: 4px; cursor: pointer; background: #fff;
     }
 
     .cor-hex {
-        flex: 1;
-        border-radius: 12px;
-        border: 1.5px solid #e5e7eb;
-        padding: 11px 14px;
-        font-size: 0.92rem;
-        font-family: monospace;
-        color: #111827;
-        background: #fff;
+        flex: 1; border-radius: 12px; border: 1.5px solid #e5e7eb;
+        padding: 11px 14px; font-size: 0.92rem; font-family: monospace;
+        color: #111827; background: #fff;
     }
 
-    .cor-hex:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.12);
-        outline: none;
-    }
+    .cor-hex:focus { border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13,110,253,0.12); outline: none; }
 
     .cor-preview {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        border: 1.5px solid #e5e7eb;
-        flex-shrink: 0;
-        transition: background 0.2s;
+        width: 48px; height: 48px;
+        border-radius: 12px; border: 1.5px solid #e5e7eb;
+        flex-shrink: 0; transition: background 0.2s;
     }
 
     .preview-card {
-        background: #fff;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 20px;
-        margin-top: 8px;
+        background: #fff; border: 1.5px solid #e5e7eb;
+        border-radius: 16px; padding: 20px; margin-top: 8px;
     }
 
     .preview-title {
-        font-size: 0.78rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #6b7280;
-        margin-bottom: 12px;
+        font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.06em; color: #6b7280; margin-bottom: 12px;
     }
 
     .preview-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 20px;
-        border-radius: 10px;
-        color: #fff;
-        font-weight: 700;
-        font-size: 0.88rem;
-        border: none;
-        cursor: default;
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 20px; border-radius: 10px; color: #fff;
+        font-weight: 700; font-size: 0.88rem; border: none; cursor: default;
     }
 
     .btn-salvar {
         background: linear-gradient(135deg, #0d6efd, #0a58ca);
-        color: #fff;
-        border: none;
-        border-radius: 14px;
-        padding: 14px;
-        font-size: 1rem;
-        font-weight: 700;
-        width: 100%;
-        margin-top: 28px;
-        cursor: pointer;
-        transition: opacity 0.2s, transform 0.1s;
-        box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
+        color: #fff; border: none; border-radius: 14px; padding: 14px;
+        font-size: 1rem; font-weight: 700; width: 100%; margin-top: 24px;
+        cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+        box-shadow: 0 6px 20px rgba(13,110,253,0.3);
+        display: flex; align-items: center; justify-content: center; gap: 8px;
     }
 
     .btn-salvar:hover { opacity: 0.92; transform: translateY(-1px); }
 
     .alert-success {
-        background: #d1fae5;
-        border: 1px solid #6ee7b7;
-        border-radius: 12px;
-        padding: 12px 16px;
-        color: #065f46;
-        font-size: 0.88rem;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 12px;
+        padding: 12px 16px; color: #065f46; font-size: 0.88rem;
+        margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
     }
+
+    .alert-error {
+        background: #fee2e2; border: 1px solid #fca5a5; border-radius: 12px;
+        padding: 12px 16px; color: #991b1b; font-size: 0.88rem;
+        margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── HORÁRIOS ── */
+    .dias-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+
+    .dia-tab {
+        padding: 7px 12px; border-radius: 10px; border: 1.5px solid #e5e7eb;
+        background: #fff; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+        transition: all 0.15s; color: #374151; position: relative;
+    }
+
+    .dia-tab:hover { border-color: #0d6efd; color: #0d6efd; }
+    .dia-tab.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+
+    .badge-count {
+        position: absolute; top: -6px; right: -6px;
+        background: #22c55e; color: #fff; border-radius: 999px;
+        font-size: 0.62rem; padding: 2px 5px; font-weight: 800;
+        min-width: 16px; text-align: center; display: none;
+    }
+
+    .dia-panel { display: none; }
+    .dia-panel.active { display: block; }
+
+    .quick-actions { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+
+    .btn-quick {
+        padding: 5px 10px; border-radius: 8px; border: 1px solid #e5e7eb;
+        background: #fff; font-size: 0.76rem; font-weight: 600;
+        cursor: pointer; color: #374151; transition: all 0.15s;
+    }
+
+    .btn-quick:hover { border-color: #0d6efd; color: #0d6efd; }
+
+    .horarios-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+        gap: 7px;
+    }
+
+    .horario-item { position: relative; }
+
+    .horario-item input[type="checkbox"] {
+        position: absolute; opacity: 0; width: 0; height: 0;
+    }
+
+    .horario-item label {
+        display: flex; align-items: center; justify-content: center;
+        padding: 9px 4px; border-radius: 9px; border: 1.5px solid #e5e7eb;
+        background: #fff; font-size: 0.82rem; font-weight: 600;
+        cursor: pointer; transition: all 0.15s; color: #374151; user-select: none;
+    }
+
+    .horario-item input:checked + label { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+    .horario-item label:hover { border-color: #0d6efd; color: #0d6efd; }
+    .horario-item input:checked + label:hover { background: #0a58ca; color: #fff; }
+
+    /* ── BLOQUEIOS ── */
+    .bloqueio-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+
+    .bloqueio-item {
+        display: flex; justify-content: space-between; align-items: center;
+        background: #fff; border: 1.5px solid #fca5a5;
+        border-radius: 12px; padding: 11px 14px; gap: 10px;
+    }
+
+    .bloqueio-datas { font-weight: 700; font-size: 0.88rem; color: #111827; }
+    .bloqueio-motivo { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+
+    .btn-remover-bloqueio {
+        background: #fee2e2; color: #dc2626; border: none;
+        border-radius: 8px; padding: 5px 10px; font-size: 0.76rem;
+        font-weight: 700; cursor: pointer; white-space: nowrap;
+    }
+
+    .btn-remover-bloqueio:hover { background: #fecaca; }
+
+    .form-bloqueio {
+        background: #fff; border: 1.5px solid #e5e7eb;
+        border-radius: 12px; padding: 16px;
+    }
+
+    .form-bloqueio-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 2fr auto;
+        gap: 10px; align-items: end;
+    }
+
+    .form-group-small label {
+        font-weight: 600; font-size: 0.8rem; color: #374151;
+        display: block; margin-bottom: 4px;
+    }
+
+    .form-control-sm {
+        border-radius: 10px; border: 1.5px solid #e5e7eb;
+        padding: 8px 11px; font-size: 0.86rem; width: 100%;
+        transition: border-color 0.2s; background: #fff;
+    }
+
+    .form-control-sm:focus { border-color: #0d6efd; outline: none; box-shadow: 0 0 0 3px rgba(13,110,253,0.1); }
+
+    .btn-add-bloqueio {
+        background: #dc2626; color: #fff; border: none;
+        border-radius: 10px; padding: 8px 14px; font-weight: 700;
+        font-size: 0.86rem; cursor: pointer; white-space: nowrap;
+    }
+
+    .btn-add-bloqueio:hover { background: #b91c1c; }
 
     @media (max-width: 576px) {
         .page-wrapper { padding: 12px; }
         .main-card { padding: 18px 14px; border-radius: 20px; }
         .page-header { flex-direction: column; align-items: stretch; }
-        .page-title { font-size: 1.25rem; }
-        .btn-back { width: 100%; justify-content: center; }
+        .form-bloqueio-grid { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="page-wrapper">
-    <div class="main-card">
+<div class="main-card">
 
-        <div class="page-header">
-            <h1 class="page-title">
-                <i class="bi bi-sliders"></i> Personalizar Salão
-            </h1>
-            <a href="{% url 'painel_admin' tenant_slug=tenant_slug %}" class="btn btn-outline-secondary btn-back">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-sliders"></i> Personalizar Salão
+        </h1>
+        <a href="{% url 'painel_admin' tenant_slug=tenant_slug %}" class="btn btn-outline-secondary"
+            style="border-radius:12px; font-weight:600; padding:10px 16px; display:inline-flex; align-items:center; gap:8px; text-decoration:none;">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </div>
+
+    {% for message in messages %}
+        <div class="alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+            <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle-fill{% else %}check-circle-fill{% endif %}"></i>
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <!-- ── FORM 1: CONFIGURAÇÕES GERAIS ── -->
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="salvar_config" value="1">
+
+        <div class="section-label"><i class="bi bi-shop"></i> Estabelecimento</div>
+
+        <div class="form-group">
+            <label class="form-label" for="id_nome_exibicao">Nome de exibição</label>
+            <input type="text" id="id_nome_exibicao" name="nome_exibicao" class="form-control"
+                value="{{ form.nome_exibicao.value|default:'' }}"
+                placeholder="Ex: Salão da Maria, Barbearia do João...">
+            <p class="form-hint">Nome exibido nas páginas públicas.</p>
         </div>
 
-        {% for message in messages %}
-            <div class="alert-success">
-                <i class="bi bi-check-circle-fill"></i>
-                {{ message }}
+        <div class="form-group">
+            <label class="form-label" for="id_tipo_negocio">Tipo de estabelecimento</label>
+            <select id="id_tipo_negocio" name="tipo_negocio" class="form-select">
+                <option value="">— Selecione —</option>
+                <option value="salao"      {% if form.tipo_negocio.value == 'salao' %}selected{% endif %}>Salão de Beleza</option>
+                <option value="barbearia"  {% if form.tipo_negocio.value == 'barbearia' %}selected{% endif %}>Barbearia</option>
+                <option value="studio"     {% if form.tipo_negocio.value == 'studio' %}selected{% endif %}>Studio de Unhas</option>
+                <option value="esmalteria" {% if form.tipo_negocio.value == 'esmalteria' %}selected{% endif %}>Esmalteria</option>
+                <option value="outro"      {% if form.tipo_negocio.value == 'outro' %}selected{% endif %}>Outro</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="id_telefone_config">Telefone para contato</label>
+            <input type="text" id="id_telefone_config" name="telefone" class="form-control"
+                value="{{ form.telefone.value|default:'' }}" placeholder="(83) 90000-0000">
+        </div>
+
+        <div class="section-label"><i class="bi bi-people"></i> Público</div>
+
+        <div class="form-group">
+            <label class="form-label" for="id_publico">Público atendido</label>
+            <select id="id_publico" name="publico" class="form-select">
+                <option value="homens"   {% if form.publico.value == 'homens' %}selected{% endif %}>Homens</option>
+                <option value="mulheres" {% if form.publico.value == 'mulheres' %}selected{% endif %}>Mulheres</option>
+                <option value="ambos"    {% if form.publico.value == 'ambos' %}selected{% endif %}>Homens e Mulheres</option>
+            </select>
+        </div>
+
+        <div class="section-label"><i class="bi bi-geo-alt"></i> Localização</div>
+
+        <div class="form-group">
+            <label class="form-label" for="id_endereco">Endereço</label>
+            <input type="text" id="id_endereco" name="endereco" class="form-control"
+                value="{{ form.endereco.value|default:'' }}"
+                placeholder="Ex: Rua das Flores, 123 — Centro, João Pessoa - PB">
+        </div>
+
+        <div class="section-label"><i class="bi bi-instagram"></i> Redes Sociais</div>
+
+        <div class="form-group">
+            <label class="form-label" for="id_instagram">Instagram</label>
+            <div style="position:relative;">
+                <input type="text" id="id_instagram" name="instagram" class="form-control"
+                    value="{{ form.instagram.value|default:'' }}" placeholder="@seu.perfil"
+                    style="padding-left:38px;">
+                <i class="bi bi-at" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6b7280;"></i>
             </div>
-        {% endfor %}
+        </div>
 
-        <form method="POST">
-            {% csrf_token %}
+        <div class="section-label"><i class="bi bi-palette"></i> Identidade Visual</div>
 
-            <!-- ── SEÇÃO 1: ESTABELECIMENTO ── -->
-            <div class="section-label">
-                <i class="bi bi-shop"></i> Estabelecimento
+        <div class="form-group">
+            <label class="form-label">Cor principal do site</label>
+            <div class="cor-wrapper">
+                <input type="color" id="corPicker" class="cor-input"
+                    value="{{ form.cor_primaria.value|default:'#0d6efd' }}">
+                <input type="text" id="corHex" name="cor_primaria" class="cor-hex"
+                    value="{{ form.cor_primaria.value|default:'#0d6efd' }}"
+                    maxlength="7" placeholder="#0d6efd">
+                <div class="cor-preview" id="corPreview"
+                    style="background:{{ form.cor_primaria.value|default:'#0d6efd' }};"></div>
             </div>
-
-            <div class="form-group">
-                <label class="form-label" for="id_nome_exibicao">Nome de exibição</label>
-                <input
-                    type="text"
-                    id="id_nome_exibicao"
-                    name="nome_exibicao"
-                    class="form-control"
-                    value="{{ form.nome_exibicao.value|default:'' }}"
-                    placeholder="Ex: Salão da Maria, Barbearia do João..."
-                >
-                <p class="form-hint">Nome exibido nas páginas públicas — pode ser diferente do nome de cadastro.</p>
+            <p class="form-hint">Afeta botões, links e destaques nas páginas dos clientes.</p>
+            <div class="preview-card">
+                <div class="preview-title">Pré-visualização</div>
+                <button class="preview-btn" id="previewBtn"
+                    style="background:{{ form.cor_primaria.value|default:'#0d6efd' }};">
+                    <i class="bi bi-calendar-check"></i> Agendar agora
+                </button>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label class="form-label" for="id_tipo_negocio">Tipo de estabelecimento</label>
-                <select id="id_tipo_negocio" name="tipo_negocio" class="form-select">
-                    <option value="">— Selecione —</option>
-                    <option value="salao"      {% if form.tipo_negocio.value == 'salao' %}selected{% endif %}>Salão de Beleza</option>
-                    <option value="barbearia"  {% if form.tipo_negocio.value == 'barbearia' %}selected{% endif %}>Barbearia</option>
-                    <option value="studio"     {% if form.tipo_negocio.value == 'studio' %}selected{% endif %}>Studio de Unhas</option>
-                    <option value="esmalteria" {% if form.tipo_negocio.value == 'esmalteria' %}selected{% endif %}>Esmalteria</option>
-                    <option value="outro"      {% if form.tipo_negocio.value == 'outro' %}selected{% endif %}>Outro</option>
-                </select>
-                <p class="form-hint">Exibido nas páginas de sobre e suporte.</p>
-            </div>
+        <button type="submit" class="btn-salvar">
+            <i class="bi bi-check-circle-fill"></i> Salvar configurações
+        </button>
+    </form>
 
-            <div class="form-group">
-                <label class="form-label" for="id_telefone_config">Telefone para contato</label>
-                <input
-                    type="text"
-                    id="id_telefone_config"
-                    name="telefone"
-                    class="form-control"
-                    value="{{ form.telefone.value|default:'' }}"
-                    placeholder="(83) 90000-0000"
-                >
-                <p class="form-hint">Exibido nas páginas públicas para contato dos clientes.</p>
-            </div>
+    <!-- ── FORM 2: HORÁRIOS ── -->
+    <div class="section-label" style="margin-top:40px;"><i class="bi bi-clock"></i> Horários de Funcionamento</div>
 
-            <!-- ── SEÇÃO 2: PÚBLICO ── -->
-            <div class="section-label">
-                <i class="bi bi-people"></i> Público
-            </div>
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="salvar_horarios" value="1">
 
-            <div class="form-group">
-                <label class="form-label" for="id_publico">Público atendido</label>
-                <select id="id_publico" name="publico" class="form-select">
-                    <option value="homens"   {% if form.publico.value == 'homens' %}selected{% endif %}>Homens</option>
-                    <option value="mulheres" {% if form.publico.value == 'mulheres' %}selected{% endif %}>Mulheres</option>
-                    <option value="ambos"    {% if form.publico.value == 'ambos' %}selected{% endif %}>Homens e Mulheres</option>
-                </select>
-                <p class="form-hint">Exibido nas páginas públicas do salão.</p>
-            </div>
+        <div class="dias-tabs">
+            {% for dia_num, dia_nome in dias %}
+            <button type="button"
+                class="dia-tab {% if forloop.first %}active{% endif %}"
+                data-dia="{{ dia_num }}"
+                onclick="trocarDia({{ dia_num }})">
+                {{ dia_nome|slice:":3" }}
+                <span class="badge-count" id="count-{{ dia_num }}">0</span>
+            </button>
+            {% endfor %}
+        </div>
 
-            <!-- ── SEÇÃO 3: LOCALIZAÇÃO ── -->
-            <div class="section-label">
-                <i class="bi bi-geo-alt"></i> Localização
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="id_endereco">Endereço</label>
-                <input
-                    type="text"
-                    id="id_endereco"
-                    name="endereco"
-                    class="form-control"
-                    value="{{ form.endereco.value|default:'' }}"
-                    placeholder="Ex: Rua das Flores, 123 — Centro, João Pessoa - PB"
-                >
-                <p class="form-hint">Aparece na página de suporte e sobre.</p>
-            </div>
-
-            <!-- ── SEÇÃO 4: REDES SOCIAIS ── -->
-            <div class="section-label">
-                <i class="bi bi-instagram"></i> Redes Sociais
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="id_instagram">Instagram</label>
-                <div style="position:relative;">
-                    <input
-                        type="text"
-                        id="id_instagram"
-                        name="instagram"
-                        class="form-control"
-                        value="{{ form.instagram.value|default:'' }}"
-                        placeholder="@seu.perfil"
-                        style="padding-left: 38px;"
-                    >
-                    <i class="bi bi-at" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6b7280;"></i>
-                </div>
-                <p class="form-hint">Link gerado automaticamente: instagram.com/seu.perfil</p>
-            </div>
-
-            <!-- ── SEÇÃO 5: IDENTIDADE VISUAL ── -->
-            <div class="section-label">
-                <i class="bi bi-palette"></i> Identidade Visual
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Cor principal do site</label>
-                <div class="cor-wrapper">
-                    <input
-                        type="color"
-                        id="corPicker"
-                        class="cor-input"
-                        value="{{ form.cor_primaria.value|default:'#0d6efd' }}"
-                    >
-                    <input
-                        type="text"
-                        id="corHex"
-                        name="cor_primaria"
-                        class="cor-hex"
-                        value="{{ form.cor_primaria.value|default:'#0d6efd' }}"
-                        maxlength="7"
-                        placeholder="#0d6efd"
-                    >
-                    <div class="cor-preview" id="corPreview"
-                        style="background: {{ form.cor_primaria.value|default:'#0d6efd' }};"></div>
-                </div>
-                <p class="form-hint">Afeta botões, links e destaques nas páginas dos clientes.</p>
-
-                <div class="preview-card" style="margin-top:12px;">
-                    <div class="preview-title">Pré-visualização</div>
-                    <button class="preview-btn" id="previewBtn"
-                        style="background: {{ form.cor_primaria.value|default:'#0d6efd' }};">
-                        <i class="bi bi-calendar-check"></i>
-                        Agendar agora
+        {% for dia_num, dia_nome in dias %}
+        <div class="dia-panel {% if forloop.first %}active{% endif %}" id="dia-{{ dia_num }}">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                <span style="font-size:0.86rem; font-weight:700; color:#374151;">{{ dia_nome }}</span>
+                <div class="quick-actions">
+                    <button type="button" class="btn-quick" onclick="selecionarTodos({{ dia_num }})">
+                        <i class="bi bi-check-all"></i> Todos
+                    </button>
+                    <button type="button" class="btn-quick" onclick="limparDia({{ dia_num }})">
+                        <i class="bi bi-x"></i> Limpar
+                    </button>
+                    <button type="button" class="btn-quick" onclick="selecionarComercial({{ dia_num }})">
+                        <i class="bi bi-briefcase"></i> Comercial
                     </button>
                 </div>
             </div>
+            <div class="horarios-grid">
+                {% for h in todos_horarios %}
+                <div class="horario-item">
+                    <input type="checkbox"
+                        id="h_{{ dia_num }}_{{ forloop.counter }}"
+                        name="dia_{{ dia_num }}"
+                        value="{{ h }}"
+                        onchange="atualizarContador({{ dia_num }})"
+                    >
+                    <label for="h_{{ dia_num }}_{{ forloop.counter }}">{{ h }}</label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
 
-            <button type="submit" class="btn-salvar">
-                <i class="bi bi-check-circle-fill"></i>
-                Salvar configurações
-            </button>
-        </form>
+        <button type="submit" class="btn-salvar" style="margin-top:20px;">
+            <i class="bi bi-clock-fill"></i> Salvar horários
+        </button>
+    </form>
 
+    <!-- ── FORM 3: BLOQUEIOS ── -->
+    <div class="section-label" style="margin-top:40px;"><i class="bi bi-calendar-x"></i> Férias e Períodos de Bloqueio</div>
+
+    {% if periodos_bloqueio %}
+    <div class="bloqueio-list">
+        {% for b in periodos_bloqueio %}
+        <div class="bloqueio-item">
+            <div>
+                <div class="bloqueio-datas">
+                    <i class="bi bi-calendar3" style="color:#dc2626;"></i>
+                    {{ b.data_inicio|date:"d/m/Y" }} → {{ b.data_fim|date:"d/m/Y" }}
+                </div>
+                {% if b.motivo %}<div class="bloqueio-motivo">{{ b.motivo }}</div>{% endif %}
+            </div>
+            <form method="POST" style="margin:0;">
+                {% csrf_token %}
+                <input type="hidden" name="remover_bloqueio" value="1">
+                <input type="hidden" name="bloqueio_id" value="{{ b.id }}">
+                <button type="submit" class="btn-remover-bloqueio">
+                    <i class="bi bi-trash3"></i> Remover
+                </button>
+            </form>
+        </div>
+        {% endfor %}
     </div>
+    {% else %}
+    <p style="color:#9ca3af; font-size:0.86rem; margin-bottom:14px;">Nenhum período de bloqueio cadastrado.</p>
+    {% endif %}
+
+    <div class="form-bloqueio">
+        <div style="font-size:0.82rem; font-weight:700; color:#374151; margin-bottom:10px;">
+            Adicionar novo período
+        </div>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="adicionar_bloqueio" value="1">
+            <div class="form-bloqueio-grid">
+                <div class="form-group-small">
+                    <label>Data início *</label>
+                    <input type="date" name="data_inicio" class="form-control-sm" required>
+                </div>
+                <div class="form-group-small">
+                    <label>Data fim *</label>
+                    <input type="date" name="data_fim" class="form-control-sm" required>
+                </div>
+                <div class="form-group-small">
+                    <label>Motivo (opcional)</label>
+                    <input type="text" name="motivo" class="form-control-sm" placeholder="Ex: Férias de julho">
+                </div>
+                <button type="submit" class="btn-add-bloqueio">
+                    <i class="bi bi-plus-circle"></i> Adicionar
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
 </div>
 
 <script>
-    const corPicker  = document.getElementById('corPicker');
-    const corHex     = document.getElementById('corHex');
-    const corPreview = document.getElementById('corPreview');
-    const previewBtn = document.getElementById('previewBtn');
+// ── Dados do banco (via JSON) ─────────────────────────────────────────────────
+const horariosSalvos = JSON.parse('{{ horarios_json|escapejs }}');
 
-    function atualizarCor(hex) {
-        corPreview.style.background = hex;
-        previewBtn.style.background = hex;
-    }
-
-    corPicker.addEventListener('input', function () {
-        corHex.value = this.value;
-        atualizarCor(this.value);
-    });
-
-    corHex.addEventListener('input', function () {
-        const hex = this.value;
-        if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-            corPicker.value = hex;
-            atualizarCor(hex);
-        }
-    });
-
-    // Máscara telefone
-    const telInput = document.getElementById('id_telefone_config');
-    if (telInput) {
-        telInput.addEventListener('input', function (e) {
-            let v = e.target.value.replace(/\D/g, '');
-            if (v.length > 11) v = v.slice(0, 11);
-            if (v.length > 6) {
-                v = v.replace(/(\d{2})(\d{5})(\d+)/, '($1) $2-$3');
-            } else if (v.length > 2) {
-                v = v.replace(/(\d{2})(\d+)/, '($1) $2');
-            }
-            e.target.value = v;
+// Marca checkboxes dos horários salvos após carregar
+document.addEventListener('DOMContentLoaded', function() {
+    Object.entries(horariosSalvos).forEach(([diaNum, horarios]) => {
+        horarios.forEach(h => {
+            const cb = document.querySelector(`input[name="dia_${diaNum}"][value="${h}"]`);
+            if (cb) cb.checked = true;
         });
+        atualizarContador(parseInt(diaNum));
+    });
+});
+
+// ── Horários ──────────────────────────────────────────────────────────────────
+function trocarDia(diaNum) {
+    document.querySelectorAll('.dia-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.dia-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('dia-' + diaNum).classList.add('active');
+    document.querySelector('[data-dia="' + diaNum + '"]').classList.add('active');
+}
+
+function atualizarContador(diaNum) {
+    const n = document.querySelectorAll(`input[name="dia_${diaNum}"]:checked`).length;
+    const badge = document.getElementById('count-' + diaNum);
+    badge.textContent = n;
+    badge.style.display = n > 0 ? 'block' : 'none';
+}
+
+function selecionarTodos(diaNum) {
+    document.querySelectorAll(`input[name="dia_${diaNum}"]`).forEach(cb => cb.checked = true);
+    atualizarContador(diaNum);
+}
+
+function limparDia(diaNum) {
+    document.querySelectorAll(`input[name="dia_${diaNum}"]`).forEach(cb => cb.checked = false);
+    atualizarContador(diaNum);
+}
+
+function selecionarComercial(diaNum) {
+    const comerciais = new Set([
+        '08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30',
+        '12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30',
+        '16:00','16:30','17:00','17:30'
+    ]);
+    document.querySelectorAll(`input[name="dia_${diaNum}"]`).forEach(cb => {
+        cb.checked = comerciais.has(cb.value);
+    });
+    atualizarContador(diaNum);
+}
+
+// ── Cor ──────────────────────────────────────────────────────────────────────
+const corPicker  = document.getElementById('corPicker');
+const corHex     = document.getElementById('corHex');
+const corPreview = document.getElementById('corPreview');
+const previewBtn = document.getElementById('previewBtn');
+
+function atualizarCor(hex) {
+    corPreview.style.background = hex;
+    previewBtn.style.background = hex;
+}
+
+corPicker.addEventListener('input', function() {
+    corHex.value = this.value;
+    atualizarCor(this.value);
+});
+
+corHex.addEventListener('input', function() {
+    if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
+        corPicker.value = this.value;
+        atualizarCor(this.value);
     }
+});
+
+// ── Máscara telefone ──────────────────────────────────────────────────────────
+const telInput = document.getElementById('id_telefone_config');
+if (telInput) {
+    telInput.addEventListener('input', function(e) {
+        let v = e.target.value.replace(/\D/g, '');
+        if (v.length > 11) v = v.slice(0, 11);
+        if (v.length > 6) v = v.replace(/(\d{2})(\d{5})(\d+)/, '($1) $2-$3');
+        else if (v.length > 2) v = v.replace(/(\d{2})(\d+)/, '($1) $2');
+        e.target.value = v;
+    });
+}
 </script>
 {% endblock %}

@@ -42,6 +42,7 @@ ALLOWED_HOSTS = os.environ.get(
 
 INSTALLED_APPS = [
     'agendamento',
+    'master',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

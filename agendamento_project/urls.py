@@ -26,5 +26,6 @@ urlpatterns = [
     path('termos/', public_views.termos, name='termos'),
     path('privacidade/', public_views.privacidade, name='privacidade'),
     path('admin/', admin.site.urls),
+    path('master/', include('master.urls')),
     path('<slug:tenant_slug>/', include('agendamento.urls')),
 ]
