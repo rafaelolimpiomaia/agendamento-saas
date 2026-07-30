@@ -1,0 +1,80 @@
+{% extends 'master/base_master.html' %}
+{% block title %}{{ titulo }} — Painel Master{% endblock %}
+{% block content %}
+
+<div style="max-width:480px; margin:60px auto;">
+    <a href="{% url 'master_detalhes_salao' tenant.id %}"
+        style="color:var(--text-muted); text-decoration:none; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px; margin-bottom:24px;">
+        <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; padding:36px; text-align:center;">
+
+        {% if acao == 'excluir' %}
+            <i class="bi bi-trash3-fill" style="font-size:2.5rem; color:var(--danger); margin-bottom:16px; display:block;"></i>
+        {% elif acao == 'congelar' %}
+            <i class="bi bi-snow2" style="font-size:2.5rem; color:var(--warning); margin-bottom:16px; display:block;"></i>
+        {% elif acao == 'suspender' %}
+            <i class="bi bi-slash-circle" style="font-size:2.5rem; color:var(--danger); margin-bottom:16px; display:block;"></i>
+        {% else %}
+            <i class="bi bi-play-circle" style="font-size:2.5rem; color:var(--success); margin-bottom:16px; display:block;"></i>
+        {% endif %}
+
+        <h2 style="font-size:1.25rem; font-weight:800; margin-bottom:10px;">{{ titulo }}</h2>
+        <p style="color:var(--text-muted); font-size:0.92rem; line-height:1.6; margin-bottom:24px;">
+            {{ descricao }}
+        </p>
+
+        <div style="background:var(--bg-dark); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:24px; text-align:left;">
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:4px;">Salão</div>
+            <div style="font-weight:700;">{{ tenant.nome }}</div>
+            <div style="font-size:0.82rem; color:var(--text-muted); font-family:monospace;">{{ tenant.slug }}</div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if pedir_motivo %}
+            <div style="text-align:left; margin-bottom:18px;">
+                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; display:block; margin-bottom:6px;">
+                    Motivo (opcional)
+                </label>
+                <textarea name="motivo" rows="3"
+                    style="width:100%; background:var(--bg-dark); border:1px solid var(--border); border-radius:8px;
+                           padding:9px 12px; color:var(--text-main); font-size:0.9rem; resize:vertical;"
+                    placeholder="Ex: Pagamento em atraso..."></textarea>
+            </div>
+            {% endif %}
+
+            {% if pedir_confirmacao_slug %}
+            <div style="text-align:left; margin-bottom:18px;">
+                <label style="font-size:0.78rem; color:var(--danger); font-weight:600; text-transform:uppercase; display:block; margin-bottom:6px;">
+                    Digite o slug para confirmar: <strong style="font-family:monospace;">{{ tenant.slug }}</strong>
+                </label>
+                <input type="text" name="confirmacao"
+                    style="width:100%; background:var(--bg-dark); border:1px solid rgba(239,68,68,0.4); border-radius:8px;
+                           padding:9px 12px; color:var(--text-main); font-size:0.9rem;"
+                    placeholder="{{ tenant.slug }}" required>
+            </div>
+            {% endif %}
+
+            <div style="display:flex; gap:12px;">
+                <a href="{% url 'master_detalhes_salao' tenant.id %}"
+                    style="flex:1; background:var(--bg-dark); color:var(--text-muted); border:1px solid var(--border);
+                           border-radius:10px; padding:12px; text-decoration:none; font-weight:600; font-size:0.9rem; text-align:center;">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    style="flex:1; border:none; border-radius:10px; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer;
+                            {% if acao == 'reativar' %}background:var(--success); color:#fff;
+                            {% elif acao == 'congelar' %}background:var(--warning); color:#fff;
+                            {% else %}background:var(--danger); color:#fff;{% endif %}">
+                    Confirmar
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

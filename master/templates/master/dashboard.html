@@ -1,0 +1,96 @@
+{% extends 'master/base_master.html' %}
+{% block title %}Dashboard — Painel Master{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:28px;">
+    <h1 style="font-size:1.6rem; font-weight:800;">Dashboard</h1>
+    <p style="color:var(--text-muted); margin-top:4px;">Visão geral da plataforma</p>
+</div>
+
+<!-- Cards de stats -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px;">
+    <div class="stat-card">
+        <div class="stat-label">Total de Salões</div>
+        <div class="stat-value">{{ total_saloes }}</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(34,197,94,0.3);">
+        <div class="stat-label">Ativos</div>
+        <div class="stat-value" style="color:var(--success);">{{ saloes_ativos }}</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(99,102,241,0.3);">
+        <div class="stat-label">Em Teste</div>
+        <div class="stat-value" style="color:var(--accent);">{{ saloes_teste }}</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(245,158,11,0.3);">
+        <div class="stat-label">Congelados</div>
+        <div class="stat-value" style="color:var(--warning);">{{ saloes_congelados }}</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(239,68,68,0.3);">
+        <div class="stat-label">Suspensos</div>
+        <div class="stat-value" style="color:var(--danger);">{{ saloes_suspensos }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Clientes</div>
+        <div class="stat-value">{{ total_clientes }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Agendamentos</div>
+        <div class="stat-value">{{ total_agendamentos }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Códigos Disponíveis</div>
+        <div class="stat-value">{{ codigos_disponiveis }}</div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+
+    <!-- Últimos salões -->
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:22px;">
+        <h2 style="font-size:1rem; font-weight:700; margin-bottom:16px;">
+            <i class="bi bi-shop" style="color:var(--accent);"></i> Últimos Salões Cadastrados
+        </h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Slug</th>
+                    <th>Cadastro</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in ultimos_saloes %}
+                <tr>
+                    <td><a href="{% url 'master_detalhes_salao' t.id %}" style="color:var(--accent); text-decoration:none;">{{ t.nome }}</a></td>
+                    <td style="color:var(--text-muted);">{{ t.slug }}</td>
+                    <td style="color:var(--text-muted);">{{ t.criado_em|date:"d/m/Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" style="color:var(--text-muted);">Nenhum salão cadastrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Últimas ações -->
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:22px;">
+        <h2 style="font-size:1rem; font-weight:700; margin-bottom:16px;">
+            <i class="bi bi-clock-history" style="color:var(--accent);"></i> Últimas Ações
+        </h2>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            {% for log in ultimas_acoes %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+                <div>
+                    <div style="font-size:0.88rem; font-weight:600;">{{ log.get_acao_display }}</div>
+                    <div style="font-size:0.78rem; color:var(--text-muted);">{{ log.tenant.nome|default:"—" }}</div>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">{{ log.criado_em|date:"d/m H:i" }}</div>
+            </div>
+            {% empty %}
+            <p style="color:var(--text-muted); font-size:0.88rem;">Nenhuma ação registrada.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

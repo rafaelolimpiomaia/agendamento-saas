@@ -1,117 +1,92 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from django.utils import timezone
 
-HORARIOS_POR_DIA = {
-    0: [  # Segunda
-        "08:00",
-        "09:30",
-        "13:00",
-        "14:30",
-        "16:00",
-        "17:30",
-        "19:00",
-    ],
 
-    1: [  # Terça
-        "08:00",
-        "09:30",
-        "17:30",
-        "19:00",
-    ],
+def _gerar_todos_horarios():
+    """Gera lista de todos os horários de 00:00 a 23:30 de 30 em 30 min."""
+    horarios = []
+    t = datetime.strptime("00:00", "%H:%M")
+    while True:
+        horarios.append(t.strftime("%H:%M"))
+        t += timedelta(minutes=30)
+        if t.hour == 0 and t.minute == 0:
+            break
+    return horarios
 
-    2: [  # Quarta
-        "08:00",
-        "09:30",
-        "13:00",
-        "14:30",
-        "16:00",
-        "17:30",
-        "19:00",
-    ],
 
-    3: [  # Quinta
-        "08:00",
-        "09:30",
-        "13:00",
-        "14:30",
-        "16:00",
-    ],
+TODOS_HORARIOS = _gerar_todos_horarios()  # ["00:00", "00:30", ..., "23:30"]
 
-    4: [  # Sexta
-        "08:00",
-        "09:30",
-        "13:00",
-        "14:30",
-        "16:00",
-    ],
 
-    5: [  # Sábado
-        "08:00",
-        "09:30",
-        "13:00",
-        "14:30",
-    ],
+def gerar_horarios(data, tenant=None):
+    """
+    Retorna a lista de horários disponíveis para uma data.
 
-    6: []  # Domingo fechado
-}
+    Prioridade:
+    1. Se o tenant tem HorarioFuncionamento configurado → usa do banco
+    2. Se não tem configuração → retorna [] (sem horários)
 
-def gerar_horarios(data):
-
+    Também verifica PeriodoBloqueio — se a data cair num período
+    de bloqueio, retorna [] (dia fechado).
+    """
     if not data:
         return []
 
     if isinstance(data, str):
         data = datetime.strptime(data, "%Y-%m-%d").date()
 
-    return HORARIOS_POR_DIA.get(data.weekday(), [])
+    if tenant is None:
+        return []
+
+    # Verifica se a data está em algum período de bloqueio
+    from agendamento.models import PeriodoBloqueio
+    bloqueado = PeriodoBloqueio.objects.filter(
+        tenant=tenant,
+        data_inicio__lte=data,
+        data_fim__gte=data,
+    ).exists()
+
+    if bloqueado:
+        return []
+
+    # Busca horários configurados para o dia da semana
+    from agendamento.models import HorarioFuncionamento
+    horarios_qs = HorarioFuncionamento.objects.filter(
+        tenant=tenant,
+        dia_semana=data.weekday(),
+    ).values_list('horario', flat=True)
+
+    return [h.strftime("%H:%M") for h in horarios_qs]
 
 
-# Horário de exceção: às 09:30, o almoço cobre o tempo extra
+# ── Horário de exceção do almoço ─────────────────────────────────────────────
 HORARIO_EXCECAO_ALMOCO = time(9, 30)
 
 
 def requer_horario_duplo(servico):
-    """
-    Retorna True se o serviço tiver o campo horario_duplo marcado como True.
-    Independente do nome — basta marcar na hora de cadastrar o serviço.
-    """
     if servico is None:
         return False
     return bool(getattr(servico, 'horario_duplo', False))
 
 
 def get_proximo_horario(horario_str, lista_horarios):
-    """
-    Dado um horário no formato "HH:MM" e a lista de horários do dia,
-    retorna o próximo horário da lista ou None se for o último.
-    """
     try:
         idx = lista_horarios.index(horario_str)
     except ValueError:
         return None
-
     if idx + 1 < len(lista_horarios):
         return lista_horarios[idx + 1]
-
-    return None  # É o último horário do dia
+    return None
 
 
 def is_excecao_almoco(horario_str):
-    """
-    Retorna True se o horário selecionado for 11:00 (exceção do almoço).
-    """
     try:
         h = datetime.strptime(horario_str, "%H:%M").time()
         return h == HORARIO_EXCECAO_ALMOCO
     except (ValueError, TypeError):
         return False
 
+
 def is_horario_dentro_24h(data, horario_str):
-    """
-    Retorna True se o horário (data + horario_str "HH:MM") estiver
-    dentro das próximas 24 horas a partir de agora (servidor).
-    Usa timezone via django.utils.timezone, que respeita TIME_ZONE do settings.py.
-    """
     try:
         from zoneinfo import ZoneInfo
         horario_time = datetime.strptime(horario_str, "%H:%M").time()
@@ -121,5 +96,4 @@ def is_horario_dentro_24h(data, horario_str):
         diferenca = agendamento_dt - agora
         return diferenca.total_seconds() < 86400
     except (ValueError, TypeError):
-        # Se não conseguir calcular, considera inválido (seguro por padrão)
         return True

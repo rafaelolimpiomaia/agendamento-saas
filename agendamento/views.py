@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Cliente, Agendamento, Servico, NotificacaoExclusao, ConfiguracaoSalao
+from .models import Cliente, Agendamento, Servico, NotificacaoExclusao, ConfiguracaoSalao, HorarioFuncionamento, PeriodoBloqueio
 from .forms import AgendamentoForm, IdentificarUsuarioForm , RedefinirSenhaForm, AgendamentoManualForm, ConfiguracaoSalaoForm
 from datetime import datetime, timedelta, date
 from django.db import IntegrityError
@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.admin.views.decorators import staff_member_required
 from collections import defaultdict
 import json, re
+import json as _json
 from .models import HorarioBloqueado
 from django.utils import timezone
 from .utils import (
@@ -18,6 +19,7 @@ from .utils import (
     get_proximo_horario,
     is_excecao_almoco,
     is_horario_dentro_24h,
+    TODOS_HORARIOS,
 )
 from django.contrib import messages
 from decimal import Decimal
@@ -132,7 +134,7 @@ def editar_servico(request, tenant_slug=None, id=None):
             if is_excecao_almoco(horario_str):
                 continue
 
-            horarios_do_dia = gerar_horarios(ag.data)
+            horarios_do_dia = gerar_horarios(ag.data, request.tenant)
             proximo = get_proximo_horario(horario_str, horarios_do_dia)
 
             if proximo is None:
@@ -191,6 +193,93 @@ def agendamentos_hoje(request, tenant_slug=None):
     return render(request, "admin/relatorio_hoje.html", {
         "agendamentos": agendamentos,
     })
+
+@admin_do_tenant_required
+def configurar_horarios(request, tenant_slug=None):
+    """
+    Aba de configuração de horários de funcionamento.
+    Salva os horários selecionados por dia da semana e gerencia períodos de bloqueio.
+    """
+    tenant = request.tenant
+
+    DIAS = [
+        (0, 'Segunda-feira'),
+        (1, 'Terça-feira'),
+        (2, 'Quarta-feira'),
+        (3, 'Quinta-feira'),
+        (4, 'Sexta-feira'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+
+    # ── POST: salvar horários ─────────────────────────────────────────────────
+    if request.method == 'POST' and 'salvar_horarios' in request.POST:
+        # Apaga todos os horários atuais do tenant e recria
+        HorarioFuncionamento.objects.filter(tenant=tenant).delete()
+
+        for dia_num, _ in DIAS:
+            horarios_selecionados = request.POST.getlist(f'dia_{dia_num}')
+            for h_str in horarios_selecionados:
+                try:
+                    h_time = datetime.strptime(h_str, "%H:%M").time()
+                    HorarioFuncionamento.objects.create(
+                        tenant=tenant,
+                        dia_semana=dia_num,
+                        horario=h_time,
+                    )
+                except ValueError:
+                    pass
+
+        messages.success(request, 'Horários de funcionamento salvos com sucesso!')
+        return redirect('configurar_horarios', tenant_slug=tenant.slug)
+
+    # ── POST: adicionar período de bloqueio ───────────────────────────────────
+    if request.method == 'POST' and 'adicionar_bloqueio' in request.POST:
+        data_inicio = request.POST.get('data_inicio')
+        data_fim    = request.POST.get('data_fim')
+        motivo      = request.POST.get('motivo', '').strip()
+
+        if data_inicio and data_fim and data_inicio <= data_fim:
+            PeriodoBloqueio.objects.create(
+                tenant=tenant,
+                data_inicio=data_inicio,
+                data_fim=data_fim,
+                motivo=motivo,
+            )
+            messages.success(request, 'Período de bloqueio adicionado.')
+        else:
+            messages.error(request, 'Datas inválidas. A data de início deve ser anterior à data de fim.')
+
+        return redirect('configurar_horarios', tenant_slug=tenant.slug)
+
+    # ── POST: remover período de bloqueio ─────────────────────────────────────
+    if request.method == 'POST' and 'remover_bloqueio' in request.POST:
+        bloqueio_id = request.POST.get('bloqueio_id')
+        PeriodoBloqueio.objects.filter(id=bloqueio_id, tenant=tenant).delete()
+        messages.success(request, 'Período de bloqueio removido.')
+        return redirect('configurar_horarios', tenant_slug=tenant.slug)
+
+    # ── GET: monta contexto ───────────────────────────────────────────────────
+    # Horários configurados por dia {dia_num: set("HH:MM")}
+    horarios_por_dia = {dia: set() for dia, _ in DIAS}
+    for hf in HorarioFuncionamento.objects.filter(tenant=tenant):
+        horarios_por_dia[hf.dia_semana].add(hf.horario.strftime("%H:%M"))
+
+    periodos_bloqueio = PeriodoBloqueio.objects.filter(tenant=tenant)
+
+    return render(request, 'admin/configurar_horarios.html', {
+        'todos_horarios': TODOS_HORARIOS,
+        'dias': DIAS,
+        'horarios_por_dia': horarios_por_dia,
+        'periodos_bloqueio': periodos_bloqueio,
+    })
+
+
+@admin_do_tenant_required
+def remover_periodo_bloqueio(request, tenant_slug=None, bloqueio_id=None):
+    PeriodoBloqueio.objects.filter(id=bloqueio_id, tenant=request.tenant).delete()
+    messages.success(request, 'Período removido.')
+    return redirect('configurar_horarios', tenant_slug=request.tenant.slug)
 
 @admin_do_tenant_required
 def calendario_admin(request, tenant_slug=None):
@@ -260,7 +349,7 @@ def api_calendario_dados(request, tenant_slug=None):
 
     while dia_cursor <= ultimo_dia:
         data_str = dia_cursor.isoformat()
-        horarios_do_dia = gerar_horarios(dia_cursor)
+        horarios_do_dia = gerar_horarios(dia_cursor, request.tenant)
         dia_bloqueado = data_str in dias_bloqueados
 
         slots = []
@@ -398,9 +487,21 @@ def relatorio_31_dias(request, tenant_slug=None):
 
 @admin_do_tenant_required
 def personalizar_salao(request, tenant_slug=None):
-    config, _ = ConfiguracaoSalao.objects.get_or_create(tenant=request.tenant)
- 
-    if request.method == 'POST':
+    tenant = request.tenant
+    config, _ = ConfiguracaoSalao.objects.get_or_create(tenant=tenant)
+
+    DIAS = [
+        (0, 'Segunda-feira'),
+        (1, 'Terça-feira'),
+        (2, 'Quarta-feira'),
+        (3, 'Quinta-feira'),
+        (4, 'Sexta-feira'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+
+    # ── POST: salvar configurações gerais ─────────────────────────────────────
+    if request.method == 'POST' and 'salvar_config' in request.POST:
         form = ConfiguracaoSalaoForm(request.POST)
         if form.is_valid():
             config.nome_exibicao = form.cleaned_data['nome_exibicao']
@@ -412,21 +513,86 @@ def personalizar_salao(request, tenant_slug=None):
             config.cor_primaria  = form.cleaned_data['cor_primaria'] or '#0d6efd'
             config.save()
             messages.success(request, 'Configurações salvas com sucesso!')
-            return redirect('personalizar_salao', tenant_slug=request.tenant.slug)
-    else:
-        form = ConfiguracaoSalaoForm(initial={
-            'nome_exibicao': config.nome_exibicao,
-            'tipo_negocio':  config.tipo_negocio,
-            'telefone':      config.telefone,
-            'publico':       config.publico,
-            'endereco':      config.endereco,
-            'instagram':     config.instagram,
-            'cor_primaria':  config.cor_primaria,
-        })
+        return redirect('personalizar_salao', tenant_slug=tenant.slug)
+
+    # ── POST: salvar horários ─────────────────────────────────────────────────
+    if request.method == 'POST' and 'salvar_horarios' in request.POST:
+        HorarioFuncionamento.objects.filter(tenant=tenant).delete()
+        for dia_num, _ in DIAS:
+            for h_str in request.POST.getlist(f'dia_{dia_num}'):
+                try:
+                    from datetime import datetime as dt
+                    h_time = dt.strptime(h_str, "%H:%M").time()
+                    HorarioFuncionamento.objects.create(
+                        tenant=tenant,
+                        dia_semana=dia_num,
+                        horario=h_time,
+                    )
+                except ValueError:
+                    pass
+        messages.success(request, 'Horários de funcionamento salvos com sucesso!')
+        return redirect('personalizar_salao', tenant_slug=tenant.slug)
+
+    # ── POST: adicionar período de bloqueio ───────────────────────────────────
+    if request.method == 'POST' and 'adicionar_bloqueio' in request.POST:
+        data_inicio = request.POST.get('data_inicio')
+        data_fim    = request.POST.get('data_fim')
+        motivo      = request.POST.get('motivo', '').strip()
+        if data_inicio and data_fim and data_inicio <= data_fim:
+            PeriodoBloqueio.objects.create(
+                tenant=tenant,
+                data_inicio=data_inicio,
+                data_fim=data_fim,
+                motivo=motivo,
+            )
+            messages.success(request, 'Período de bloqueio adicionado.')
+        else:
+            messages.error(request, 'Datas inválidas.')
+        return redirect('personalizar_salao', tenant_slug=tenant.slug)
+
+    # ── POST: remover período de bloqueio ─────────────────────────────────────
+    if request.method == 'POST' and 'remover_bloqueio' in request.POST:
+        bloqueio_id = request.POST.get('bloqueio_id')
+        PeriodoBloqueio.objects.filter(id=bloqueio_id, tenant=tenant).delete()
+        messages.success(request, 'Período de bloqueio removido.')
+        return redirect('personalizar_salao', tenant_slug=tenant.slug)
+
+    # ── GET ───────────────────────────────────────────────────────────────────
+    form = ConfiguracaoSalaoForm(initial={
+        'nome_exibicao': config.nome_exibicao,
+        'tipo_negocio':  config.tipo_negocio,
+        'telefone':      config.telefone,
+        'publico':       config.publico,
+        'endereco':      config.endereco,
+        'instagram':     config.instagram,
+        'cor_primaria':  config.cor_primaria,
+    })
+
+    # Retorna strings "HH:MM" para comparação no JS
+    horarios_por_dia = {}
+    for dia_num, _ in DIAS:
+        horarios_por_dia[dia_num] = set(
+            hf.strftime("%H:%M")
+            for hf in HorarioFuncionamento.objects.filter(
+                tenant=tenant, dia_semana=dia_num
+            ).values_list('horario', flat=True)
+        )
+
+    # Serializa para JSON para uso no template via JavaScript
+    horarios_json = _json.dumps({
+        str(dia_num): list(horarios_por_dia[dia_num])
+        for dia_num, _ in DIAS
+    })
+
+    periodos_bloqueio = PeriodoBloqueio.objects.filter(tenant=tenant)
 
     return render(request, 'admin/personalizar_salao.html', {
         'form': form,
         'config': config,
+        'todos_horarios': TODOS_HORARIOS,
+        'dias': DIAS,
+        'horarios_json': horarios_json,
+        'periodos_bloqueio': periodos_bloqueio,
     })
 
 @admin_do_tenant_required
@@ -482,7 +648,7 @@ def excluir_agendamento_admin(request, tenant_slug=None, id=None):
         if agendamento.servico and requer_horario_duplo(agendamento.servico):
             horario_str = agendamento.horario.strftime("%H:%M")
             if not is_excecao_almoco(horario_str):
-                horarios_do_dia = gerar_horarios(agendamento.data)
+                horarios_do_dia = gerar_horarios(agendamento.data, agendamento.tenant)
                 proximo = get_proximo_horario(horario_str, horarios_do_dia)
                 if proximo is not None:
                     proximo_time = datetime.strptime(proximo, "%H:%M").time()
@@ -542,7 +708,7 @@ def gerenciar_horarios(request, tenant_slug=None):
     data = request.GET.get("data")
     data_formatada = converter_data(data)
 
-    horarios = gerar_horarios(data_formatada)
+    horarios = gerar_horarios(data_formatada, request.tenant)
 
     bloqueados = []
     horarios_liberados = []
@@ -809,7 +975,7 @@ def agendamento_manual(request, tenant_slug=None):
     data_str = request.GET.get('data') or request.POST.get('data') or ''
     data_convertida = converter_data(data_str) if data_str else None
 
-    horarios_do_dia = gerar_horarios(data_convertida)
+    horarios_do_dia = gerar_horarios(data_convertida, request.tenant)
 
     horarios_ocupados = []
     bloqueados_lista = []
@@ -1101,6 +1267,9 @@ def home(request, tenant_slug=None):
 
 @login_required
 def criar_agendamento(request, tenant_slug=None):
+    if getattr(request, 'tenant_congelado', False):
+        return render(request, 'clients/salao_congelado.html')
+    
     if request.user.is_staff:
         return redirect('painel_admin', tenant_slug=request.tenant.slug)
 
@@ -1124,7 +1293,7 @@ def criar_agendamento(request, tenant_slug=None):
     data_selecionada = request.GET.get("data") or request.POST.get("data")
     data_convertida = converter_data(data_selecionada)
 
-    horarios = gerar_horarios(data_convertida)
+    horarios = gerar_horarios(data_convertida, request.tenant)
     horarios_ocupados = []
 
     if data_convertida:
@@ -1343,7 +1512,7 @@ def excluir_agendamento(request, tenant_slug=None, id=None):
         if agendamento.servico and requer_horario_duplo(agendamento.servico):
             horario_str = agendamento.horario.strftime("%H:%M")
             if not is_excecao_almoco(horario_str):
-                horarios_do_dia = gerar_horarios(agendamento.data)
+                horarios_do_dia = gerar_horarios(agendamento.data, agendamento.tenant)
                 proximo = get_proximo_horario(horario_str, horarios_do_dia)
                 if proximo is not None:
                     proximo_time = datetime.strptime(proximo, "%H:%M").time()
@@ -1388,16 +1557,49 @@ def escolher_servico(request, tenant_slug=None):
         "erro": erro,
     })
 
+@login_required
+def sobre(request, tenant_slug=None):
+    from .models import HorarioFuncionamento
+
+    DIAS = [
+        (0, 'Segunda-feira'),
+        (1, 'Terça-feira'),
+        (2, 'Quarta-feira'),
+        (3, 'Quinta-feira'),
+        (4, 'Sexta-feira'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+
+    horarios_semana = []
+    for dia_num, dia_nome in DIAS:
+        horarios = HorarioFuncionamento.objects.filter(
+            tenant=request.tenant,
+            dia_semana=dia_num,
+        ).order_by('horario').values_list('horario', flat=True)
+
+        if horarios:
+            abertura   = horarios[0].strftime('%H:%M')
+            fechamento = horarios[len(horarios) - 1].strftime('%H:%M')
+            horarios_semana.append({
+                'dia': dia_nome,
+                'abertura': abertura,
+                'fechamento': fechamento,
+                'fechado': False,
+            })
+        else:
+            horarios_semana.append({
+                'dia': dia_nome,
+                'fechado': True,
+            })
+
+    return render(request, 'clients/sobre.html', {
+        'horarios_semana': horarios_semana,
+    })
 
 @login_required
 def perfil(request, tenant_slug=None):
     return render(request, 'clients/perfil.html')
-
-
-@login_required
-def sobre(request, tenant_slug=None):
-    return render(request, 'clients/sobre.html')
-
 
 @login_required
 def suporte(request, tenant_slug=None):

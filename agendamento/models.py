@@ -38,6 +38,8 @@ class Tenant(models.Model):
         null=True, blank=True,
     )
 
+    excluido_em = models.DateTimeField(null=True, blank=True)
+    
     def __str__(self):
         return self.nome
 
@@ -106,6 +108,54 @@ class ConfiguracaoSalao(models.Model):
     class Meta:
         verbose_name = 'Configuração do Salão'
         verbose_name_plural = 'Configurações dos Salões'
+
+class HorarioFuncionamento(models.Model):
+    """
+    Armazena os horários disponíveis por dia da semana para cada tenant.
+    Cada registro representa UM horário disponível num dia específico.
+    """
+    DIA_CHOICES = [
+        (0, 'Segunda-feira'),
+        (1, 'Terça-feira'),
+        (2, 'Quarta-feira'),
+        (3, 'Quinta-feira'),
+        (4, 'Sexta-feira'),
+        (5, 'Sábado'),
+        (6, 'Domingo'),
+    ]
+
+    tenant    = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='horarios_funcionamento')
+    dia_semana = models.IntegerField(choices=DIA_CHOICES)
+    horario   = models.TimeField()
+
+    class Meta:
+        unique_together = ['tenant', 'dia_semana', 'horario']
+        ordering = ['dia_semana', 'horario']
+        verbose_name = 'Horário de Funcionamento'
+        verbose_name_plural = 'Horários de Funcionamento'
+
+    def __str__(self):
+        return f'{self.get_dia_semana_display()} {self.horario.strftime("%H:%M")} — {self.tenant.nome}'
+
+
+class PeriodoBloqueio(models.Model):
+    """
+    Períodos de bloqueio completo do salão (férias, feriados, etc).
+    Funciona em conjunto com HorarioBloqueado já existente.
+    """
+    tenant      = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='periodos_bloqueio')
+    data_inicio = models.DateField()
+    data_fim    = models.DateField()
+    motivo      = models.CharField(max_length=200, blank=True, default='')
+    criado_em   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data_inicio']
+        verbose_name = 'Período de Bloqueio'
+        verbose_name_plural = 'Períodos de Bloqueio'
+
+    def __str__(self):
+        return f'{self.tenant.nome} — {self.data_inicio} a {self.data_fim}'
 
 
 class Cliente(models.Model):
