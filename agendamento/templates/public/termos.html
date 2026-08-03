@@ -1,202 +1,789 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Termos de Uso — Agendamento Digital</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        :root {
-            --blue: #0d6efd;
-            --blue-dark: #0a58ca;
-            --blue-light: #e7f1ff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Termos de Uso — Agendamento Digital</title>
+<style>
+  :root{
+    --bg: #0b0d10;
+    --bg-elev: #14171b;
+    --border: #23272d;
+    --text: #d8dbe0;
+    --text-dim: #8b929c;
+    --accent: #5eead4;
+    --accent-dim: #2a4a45;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height:1.65;
+  }
+  a{color:var(--accent); text-decoration:none;}
+  a:hover{text-decoration:underline;}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+  .btn-voltar{
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 999;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #14171b;
+    border: 1px solid #23272d;
+    border-radius: 999px;
+    color: #d8dbe0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+  .btn-voltar:hover{
+    border-color: #5eead4;
+    color: #5eead4;
+    text-decoration: none;
+    transform: translateX(-2px);
+  }
+  .btn-voltar svg{
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 600px){
+    .btn-voltar{
+      top: 12px;
+      left: 12px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+    }
+  }
 
-        body {
-            font-family: Arial, sans-serif;
-            color: #111827;
-            background: #f9fafb;
-        }
+  header{
+    padding:56px 24px 32px;
+    text-align:center;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(94,234,212,0.06), transparent);
+  }
+  header h1{
+    margin:0 0 8px;
+    font-size:2rem;
+    letter-spacing:-0.02em;
+    color:#fff;
+  }
+  header p{
+    margin:0;
+    color:var(--text-dim);
+    font-size:0.95rem;
+  }
 
-        /* ── NAVBAR ── */
-        .navbar {
-            background: #ffffff;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 14px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+  .layout{
+    display:flex;
+    max-width:1100px;
+    margin:0 auto;
+    padding:32px 24px 96px;
+    gap:40px;
+    align-items:flex-start;
+  }
 
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--blue);
-            text-decoration: none;
-        }
+  nav.toc{
+    position:sticky;
+    top:24px;
+    flex:0 0 240px;
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:20px;
+    max-height:calc(100vh - 48px);
+    overflow-y:auto;
+  }
+  nav.toc h2{
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--text-dim);
+    margin:0 0 12px;
+  }
+  nav.toc ol{
+    list-style:none;
+    margin:0;
+    padding:0;
+    counter-reset: item;
+  }
+  nav.toc li{
+    margin-bottom:6px;
+  }
+  nav.toc a{
+    color:var(--text);
+    font-size:0.85rem;
+    display:block;
+    padding:4px 0;
+    border-left:2px solid transparent;
+    padding-left:10px;
+  }
+  nav.toc a:hover{
+    color:var(--accent);
+    text-decoration:none;
+    border-left-color:var(--accent);
+  }
 
-        .btn-voltar {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 9px 18px;
-            border-radius: 10px;
-            border: 1.5px solid #e5e7eb;
-            background: #fff;
-            color: #374151;
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-decoration: none;
-            transition: all .2s;
-        }
+  main{
+    flex:1;
+    min-width:0;
+  }
 
-        .btn-voltar:hover { background: #f3f4f6; color: #111827; }
+  section{
+    margin-bottom:40px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--border);
+  }
+  section:last-child{border-bottom:none;}
 
-        /* ── HERO ── */
-        .doc-hero {
-            background: linear-gradient(135deg, var(--blue-light), #f0f6ff);
-            padding: 56px 24px 48px;
-            text-align: center;
-            border-bottom: 1px solid #e5e7eb;
-        }
+  section h2{
+    font-size:1.15rem;
+    color:#fff;
+    margin:0 0 14px;
+    scroll-margin-top:24px;
+  }
+  section h3{
+    font-size:1rem;
+    color:var(--accent);
+    margin:20px 0 8px;
+    scroll-margin-top:24px;
+  }
+  section p{
+    color:var(--text);
+    margin:0 0 14px;
+    font-size:0.95rem;
+  }
+  section ul, section ol{
+    padding-left:20px;
+    margin:0 0 14px;
+  }
+  section li{
+    margin-bottom:8px;
+    font-size:0.95rem;
+    color:var(--text);
+  }
+  .muted{color:var(--text-dim); font-size:0.85rem;}
+  .caps{
+    font-size:0.85rem;
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:14px 16px;
+  }
+  .contact-box{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:20px 24px;
+  }
+  .contact-box strong{color:#fff;}
 
-        .doc-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--blue);
-            color: #fff;
-            border-radius: 999px;
-            padding: 5px 14px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 16px;
-        }
+  footer{
+    text-align:center;
+    padding:24px;
+    color:var(--text-dim);
+    font-size:0.8rem;
+    border-top:1px solid var(--border);
+  }
 
-        .doc-hero h1 {
-            font-size: clamp(1.6rem, 4vw, 2.2rem);
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 10px;
-        }
-
-        .doc-hero p {
-            font-size: 0.92rem;
-            color: #6b7280;
-        }
-
-        /* ── CONTEÚDO ── */
-        .doc-wrapper {
-            max-width: 780px;
-            margin: 48px auto;
-            padding: 0 24px 80px;
-        }
-
-        .doc-card {
-            background: #ffffff;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 20px;
-            padding: 48px 44px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.05);
-        }
-
-        /* ── PLACEHOLDER ── */
-        .placeholder-box {
-            background: var(--blue-light);
-            border: 2px dashed #93c5fd;
-            border-radius: 14px;
-            padding: 40px 32px;
-            text-align: center;
-            color: #1d4ed8;
-        }
-
-        .placeholder-box i {
-            font-size: 2.5rem;
-            margin-bottom: 12px;
-            opacity: 0.6;
-        }
-
-        .placeholder-box h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .placeholder-box p {
-            font-size: 0.88rem;
-            opacity: 0.75;
-            margin: 0;
-        }
-
-        /* ── FOOTER ── */
-        .footer {
-            background: #0f172a;
-            color: #94a3b8;
-            text-align: center;
-            padding: 28px 24px;
-            font-size: 0.82rem;
-        }
-
-        .footer a { color: #94a3b8; text-decoration: none; }
-        .footer a:hover { color: #fff; }
-
-        @media (max-width: 576px) {
-            .doc-card { padding: 28px 20px; }
-        }
-    </style>
+  @media (max-width: 860px){
+    .layout{flex-direction:column;}
+    nav.toc{
+      position:relative;
+      top:0;
+      width:100%;
+      flex:none;
+      max-height:none;
+    }
+  }
+</style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="/" class="navbar-brand">
-        <i class="bi bi-scissors"></i>
-        Agendamento Digital
-    </a>
-    <a href="/cadastro" class="btn-voltar">
-        <i class="bi bi-arrow-left"></i>
-        Voltar
-    </a>
-</nav>
+<a href="/cadastro" id="btnVoltar" class="btn-voltar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5"></path>
+    <path d="M12 19l-7-7 7-7"></path>
+  </svg>
+  Voltar
+</a>
 
-<div class="doc-hero">
-    <div class="doc-badge">
-        <i class="bi bi-file-text"></i>
-        Documento legal
-    </div>
-    <h1>Termos de Uso</h1>
-    <p>Última atualização: <strong>a definir</strong></p>
+<header>
+  <h1>Termos de Uso</h1>
+  <p>Última atualização: 01 de agosto de 2026</p>
+</header>
+
+<div class="layout">
+
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li><a href="#servicos">1. Nossos Serviços</a></li>
+      <li><a href="#propriedade">2. Propriedade Intelectual</a></li>
+      <li><a href="#representacoes">3. Declarações do Usuário</a></li>
+      <li><a href="#cadastro">4. Cadastro do Usuário</a></li>
+      <li><a href="#pagamento">5. Compras e Pagamento</a></li>
+      <li><a href="#assinaturas">6. Assinaturas</a></li>
+      <li><a href="#proibidas">7. Atividades Proibidas</a></li>
+      <li><a href="#conteudo">8. Conteúdo Gerado pelo Usuário</a></li>
+      <li><a href="#licenca">9. Licença de Contribuição</a></li>
+      <li><a href="#gestao">10. Gestão dos Serviços</a></li>
+      <li><a href="#privacidade">11. Política de Privacidade</a></li>
+      <li><a href="#prazo">12. Prazo e Rescisão</a></li>
+      <li><a href="#modificacoes">13. Modificações e Interrupções</a></li>
+      <li><a href="#lei">14. Legislação Aplicável</a></li>
+      <li><a href="#disputas">15. Resolução de Disputas</a></li>
+      <li><a href="#correcoes">16. Correções</a></li>
+      <li><a href="#isencao">17. Isenção de Garantias</a></li>
+      <li><a href="#limitacao">18. Limitação de Responsabilidade</a></li>
+      <li><a href="#indenizacao">19. Indenização</a></li>
+      <li><a href="#dados">20. Dados do Usuário</a></li>
+      <li><a href="#eletronico">21. Comunicações Eletrônicas</a></li>
+      <li><a href="#diversos">22. Disposições Gerais</a></li>
+      <li><a href="#contato">23. Contato</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section>
+      <p>
+        Nós somos a <strong>Easy Soluções</strong> ("Empresa", "nós", "nos", "nosso"), uma empresa registrada no Brasil,
+        com sede na Rua Antonio Belarmino da Costa, 120, João Pessoa, Paraíba, 58063090.
+      </p>
+      <p>
+        Operamos o site <a href="https://agendamento-saas.onrender.com" target="_blank">agendamento-saas.onrender.com</a>
+        (o "Site"), bem como quaisquer outros produtos e serviços relacionados que façam referência a estes termos legais
+        (os "Termos Legais"), coletivamente chamados de "Serviços".
+      </p>
+      <p>
+        Você pode entrar em contato conosco por telefone em <strong>(83) 99302-4480</strong>, por e-mail em
+        <a href="mailto:amorim.erick2020@gmail.com">amorim.erick2020@gmail.com</a>, ou por correio no endereço acima.
+      </p>
+      <p>
+        Estes Termos Legais constituem um acordo juridicamente vinculante firmado entre você, seja pessoalmente ou em
+        nome de uma entidade ("você"), e a Easy Soluções, referente ao seu acesso e uso dos Serviços. Ao acessar os
+        Serviços, você concorda que leu, entendeu e aceita estar vinculado a todos estes Termos Legais.
+        <strong>SE VOCÊ NÃO CONCORDA COM TODOS ESTES TERMOS LEGAIS, ESTÁ EXPRESSAMENTE PROIBIDO DE USAR OS SERVIÇOS E DEVE
+        INTERROMPER O USO IMEDIATAMENTE.</strong>
+      </p>
+      <p>
+        Reservamo-nos o direito, a nosso exclusivo critério, de fazer alterações ou modificações a estes Termos Legais a
+        qualquer momento e por qualquer motivo. Iremos alertá-lo sobre quaisquer alterações atualizando a data de
+        "Última atualização" destes Termos Legais. É sua responsabilidade revisar periodicamente estes Termos Legais
+        para se manter informado sobre atualizações.
+      </p>
+      <p class="caps">
+        Todos os usuários que sejam menores de idade na jurisdição em que residem (geralmente menores de 18 anos) devem
+        ter permissão e supervisão direta de um dos pais ou responsável legal para usar os Serviços.
+      </p>
+      <p class="muted">Recomendamos que você imprima uma cópia destes Termos Legais para seus registros.</p>
+    </section>
+
+    <section>
+      <h2 id="servicos">1. Nossos Serviços</h2>
+      <p>
+        As informações fornecidas no uso dos Serviços não se destinam à distribuição ou uso por qualquer pessoa ou
+        entidade em qualquer jurisdição ou país onde tal distribuição ou uso seja contrário à lei ou regulamento, ou
+        que nos sujeite a qualquer exigência de registro nessa jurisdição ou país. Assim, pessoas que optem por
+        acessar os Serviços a partir de outras localidades o fazem por iniciativa própria e são as únicas
+        responsáveis pelo cumprimento das leis locais aplicáveis.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="propriedade">2. Propriedade Intelectual</h2>
+
+      <h3>Nossa propriedade intelectual</h3>
+      <p>
+        Somos os proprietários ou licenciados de todos os direitos de propriedade intelectual em nossos Serviços,
+        incluindo todo o código-fonte, bancos de dados, funcionalidades, software, design do site, áudio, vídeo,
+        texto, fotografias e gráficos (coletivamente, o "Conteúdo"), bem como as marcas comerciais, marcas de
+        serviço e logotipos nele contidos (as "Marcas").
+      </p>
+      <p>
+        Nosso Conteúdo e Marcas são protegidos por leis de direitos autorais e marcas registradas (e diversos outros
+        direitos de propriedade intelectual e leis de concorrência desleal) e tratados ao redor do mundo.
+      </p>
+      <p>O Conteúdo e as Marcas são fornecidos nos Serviços "COMO ESTÃO", apenas para seu uso comercial interno.</p>
+
+      <h3>Seu uso dos nossos Serviços</h3>
+      <p>
+        Sujeito ao seu cumprimento destes Termos Legais, incluindo a seção
+        <a href="#proibidas">"ATIVIDADES PROIBIDAS"</a> abaixo, concedemos a você uma licença não exclusiva,
+        intransferível e revogável para:
+      </p>
+      <ul>
+        <li>acessar os Serviços; e</li>
+        <li>baixar ou imprimir uma cópia de qualquer parte do Conteúdo ao qual você tenha acesso legítimo,</li>
+      </ul>
+      <p>exclusivamente para seu uso comercial interno.</p>
+      <p>
+        Exceto conforme estabelecido nesta seção ou em outra parte de nossos Termos Legais, nenhuma parte dos
+        Serviços e nenhum Conteúdo ou Marca pode ser copiado, reproduzido, republicado, enviado, postado,
+        exibido publicamente, codificado, traduzido, transmitido, distribuído, vendido, licenciado ou de outra
+        forma explorado para qualquer finalidade comercial, sem nossa permissão prévia por escrito.
+      </p>
+      <p>
+        Se desejar fazer qualquer uso dos Serviços, Conteúdo ou Marcas diferente do estabelecido nesta seção,
+        entre em contato pelo e-mail
+        <a href="mailto:amorim.erick2020@gmail.com">amorim.erick2020@gmail.com</a>.
+      </p>
+      <p>Reservamo-nos todos os direitos não expressamente concedidos a você sobre os Serviços, Conteúdo e Marcas.</p>
+      <p>Qualquer violação destes direitos de propriedade intelectual constituirá violação material destes Termos
+        Legais e seu direito de usar nossos Serviços será encerrado imediatamente.</p>
+
+      <h3>Suas contribuições</h3>
+      <p>
+        Revise esta seção e a seção "ATIVIDADES PROIBIDAS" cuidadosamente antes de usar nossos Serviços para
+        entender (a) os direitos que você nos concede e (b) as obrigações que você tem ao publicar ou enviar
+        qualquer conteúdo através dos Serviços.
+      </p>
+      <p>
+        <strong>Envios:</strong> ao nos enviar diretamente qualquer pergunta, comentário, sugestão, ideia,
+        feedback ou outra informação sobre os Serviços ("Envios"), você concorda em nos ceder todos os direitos
+        de propriedade intelectual sobre tal Envio. Você concorda que seremos os proprietários deste Envio e
+        teremos direito ao seu uso e disseminação irrestritos para qualquer finalidade lícita, comercial ou não,
+        sem reconhecimento ou compensação a você.
+      </p>
+      <p><strong>Você é responsável pelo que publica ou envia:</strong> ao nos enviar Envios através de qualquer
+        parte dos Serviços, você:</p>
+      <ul>
+        <li>confirma que leu e concorda com nossas <a href="#proibidas">"ATIVIDADES PROIBIDAS"</a> e não
+          publicará, enviará ou transmitirá através dos Serviços qualquer Envio ilegal, difamatório, odioso,
+          nocivo, obsceno, abusivo, discriminatório, ameaçador, sexualmente explícito, falso, impreciso ou
+          enganoso;</li>
+        <li>renuncia, na medida permitida pela lei aplicável, a quaisquer direitos morais sobre tal Envio;</li>
+        <li>garante que tal Envio é original a você ou que você possui os direitos e licenças necessários para
+          enviá-lo, e que possui plena autoridade para nos conceder os direitos acima mencionados; e</li>
+        <li>garante e declara que seus Envios não constituem informações confidenciais.</li>
+      </ul>
+      <p>
+        Você é o único responsável por seus Envios e concorda expressamente em nos reembolsar por quaisquer
+        perdas que possamos sofrer em decorrência da violação de (a) esta seção, (b) direitos de propriedade
+        intelectual de terceiros, ou (c) lei aplicável.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="representacoes">3. Declarações do Usuário</h2>
+      <p>Ao usar os Serviços, você declara e garante que:</p>
+      <ol>
+        <li>todas as informações de cadastro que você enviar serão verdadeiras, precisas, atuais e completas;</li>
+        <li>você manterá a precisão dessas informações e as atualizará prontamente quando necessário;</li>
+        <li>você possui capacidade legal e concorda em cumprir estes Termos Legais;</li>
+        <li>você não é menor de idade na jurisdição em que reside, ou, se for, recebeu permissão dos pais ou
+          responsável para usar os Serviços;</li>
+        <li>você não acessará os Serviços por meios automatizados ou não humanos, seja por bot, script ou
+          outro método;</li>
+        <li>você não usará os Serviços para qualquer finalidade ilegal ou não autorizada; e</li>
+        <li>seu uso dos Serviços não violará nenhuma lei ou regulamento aplicável.</li>
+      </ol>
+      <p>
+        Se você fornecer qualquer informação falsa, imprecisa, desatualizada ou incompleta, temos o direito de
+        suspender ou encerrar sua conta e recusar qualquer uso atual ou futuro dos Serviços.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="cadastro">4. Cadastro do Usuário</h2>
+      <p>
+        Pode ser necessário se cadastrar para usar os Serviços. Você concorda em manter sua senha confidencial e
+        será responsável por todo o uso de sua conta e senha. Reservamo-nos o direito de remover, recuperar ou
+        alterar um nome de usuário que você escolher, se determinarmos, a nosso exclusivo critério, que tal nome
+        é inapropriado, obsceno ou censurável.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="pagamento">5. Compras e Pagamento</h2>
+      <p>Aceitamos as seguintes formas de pagamento:</p>
+      <ul>
+        <li>Pix</li>
+        <li>Cartão Mastercard</li>
+      </ul>
+      <p>
+        Você concorda em fornecer informações de compra e conta atuais, completas e precisas para todas as
+        compras feitas através dos Serviços. Você também concorda em atualizar prontamente suas informações de
+        conta e pagamento conforme necessário. Podemos alterar os preços a qualquer momento. Todos os pagamentos
+        serão feitos em Real (Brasil).
+      </p>
+      <p>
+        Você concorda em pagar todas as cobranças pelos preços vigentes no momento da compra, e nos autoriza a
+        cobrar do meio de pagamento escolhido os valores correspondentes ao efetuar seu pedido. Reservamo-nos o
+        direito de corrigir quaisquer erros de precificação, mesmo após termos solicitado ou recebido o pagamento.
+      </p>
+      <p>
+        Reservamo-nos o direito de recusar qualquer pedido feito através dos Serviços, bem como de limitar ou
+        cancelar quantidades por pessoa, domicílio ou pedido, a nosso exclusivo critério.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="assinaturas">6. Assinaturas</h2>
+
+      <h3>Cobrança e renovação</h3>
+      <p>
+        As renovações de assinatura são feitas de forma manual. Antes do vencimento da sua assinatura, entraremos
+        em contato via WhatsApp para confirmar se você deseja renová-la. Caso opte por renovar, forneceremos os
+        dados de pagamento e ativaremos sua assinatura assim que o pagamento for recebido.
+      </p>
+
+      <h3>Teste gratuito</h3>
+      <p>
+        Oferecemos um teste gratuito de <strong>7 dias</strong> para novos usuários que se cadastrarem nos
+        Serviços. A conta não será cobrada, e a assinatura será suspensa até que seja feito o upgrade para a
+        versão paga ao final do período de teste.
+      </p>
+
+      <h3>Cancelamento</h3>
+      <p>
+        Todas as compras são não reembolsáveis. Você pode cancelar sua assinatura a qualquer momento entrando
+        em contato conosco pelas informações fornecidas abaixo. Seu cancelamento terá efeito ao final do período
+        pago vigente. Em caso de dúvidas, escreva para
+        <a href="mailto:amorim.erick2020@gmail.com">amorim.erick2020@gmail.com</a>.
+      </p>
+
+      <h3>Alterações de preço</h3>
+      <p>
+        Podemos, periodicamente, alterar o valor da assinatura, e comunicaremos qualquer mudança de preço a
+        você de acordo com a lei aplicável.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="proibidas">7. Atividades Proibidas</h2>
+      <p>
+        Você não pode acessar ou usar os Serviços para nenhuma finalidade além daquela para a qual os
+        disponibilizamos. Os Serviços não podem ser usados em conexão com quaisquer empreendimentos comerciais,
+        exceto aqueles especificamente endossados ou aprovados por nós.
+      </p>
+      <p>Como usuário dos Serviços, você concorda em não:</p>
+      <ul>
+        <li>Coletar sistematicamente dados ou conteúdo dos Serviços para criar uma coleção, compilação, banco
+          de dados ou diretório sem nossa permissão por escrito.</li>
+        <li>Enganar ou fraudar a nós e outros usuários, especialmente em tentativas de obter informações
+          sensíveis de conta, como senhas.</li>
+        <li>Contornar, desabilitar ou interferir em recursos de segurança dos Serviços.</li>
+        <li>Difamar, denegrir ou prejudicar, em nossa opinião, a nós e/ou os Serviços.</li>
+        <li>Usar informações obtidas dos Serviços para assediar, abusar ou prejudicar outra pessoa.</li>
+        <li>Fazer uso indevido de nossos serviços de suporte ou enviar denúncias falsas de abuso ou má conduta.</li>
+        <li>Usar os Serviços de maneira inconsistente com quaisquer leis ou regulamentos aplicáveis.</li>
+        <li>Fazer enquadramento (framing) não autorizado ou vincular-se aos Serviços indevidamente.</li>
+        <li>Enviar ou transmitir vírus, cavalos de Troia ou outro material nocivo, incluindo spam, que
+          interfira no uso e aproveitamento dos Serviços por qualquer parte.</li>
+        <li>Utilizar sistemas automatizados, como scripts, robôs ou ferramentas de mineração e extração de
+          dados.</li>
+        <li>Remover avisos de direitos autorais ou de propriedade de qualquer Conteúdo.</li>
+        <li>Tentar se passar por outro usuário ou pessoa, ou usar o nome de usuário de outra pessoa.</li>
+        <li>Enviar material que atue como mecanismo de coleta ou transmissão de informações, como pixels de
+          rastreamento, cookies ou dispositivos similares de coleta passiva.</li>
+        <li>Interferir, perturbar ou sobrecarregar indevidamente os Serviços ou as redes conectadas a eles.</li>
+        <li>Assediar, importunar, intimidar ou ameaçar qualquer de nossos funcionários ou agentes envolvidos
+          na prestação dos Serviços.</li>
+        <li>Tentar contornar quaisquer medidas dos Serviços destinadas a prevenir ou restringir o acesso.</li>
+        <li>Copiar ou adaptar o software dos Serviços, incluindo Flash, PHP, HTML, JavaScript ou outro código.</li>
+        <li>Decifrar, descompilar, desmontar ou fazer engenharia reversa de qualquer software que compõe os
+          Serviços, exceto quando permitido por lei.</li>
+        <li>Usar, desenvolver ou distribuir qualquer sistema automatizado (spider, robô, scraper, leitor
+          offline) para acessar os Serviços, exceto uso padrão de navegador ou mecanismo de busca.</li>
+        <li>Usar um agente de compras para fazer compras através dos Serviços.</li>
+        <li>Fazer uso não autorizado dos Serviços, incluindo coletar nomes de usuário e/ou e-mails para envio
+          de mensagens não solicitadas, ou criar contas por meios automatizados ou sob falsos pretextos.</li>
+        <li>Usar os Serviços como parte de qualquer esforço para competir conosco, ou para qualquer
+          empreendimento comercial gerador de receita não autorizado.</li>
+        <li>Vender ou transferir de qualquer outra forma o seu perfil.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 id="conteudo">8. Conteúdo Gerado pelo Usuário</h2>
+      <p>
+        Os Serviços não oferecem a possibilidade de os usuários publicarem conteúdo. Podemos, no entanto, lhe
+        dar a oportunidade de criar, enviar, publicar, exibir, transmitir ou distribuir conteúdo e materiais
+        para nós ou nos Serviços, incluindo texto, vídeo, áudio, fotografias, gráficos, comentários, sugestões
+        ou informações pessoais (coletivamente, "Contribuições"). As Contribuições podem ficar visíveis a
+        outros usuários dos Serviços e em sites de terceiros. Ao criar ou disponibilizar qualquer Contribuição,
+        você declara e garante que:
+      </p>
+      <ul>
+        <li>a criação, distribuição, exibição pública ou acesso às suas Contribuições não infringe direitos de
+          propriedade de terceiros, incluindo direitos autorais, de marca, segredo comercial ou morais;</li>
+        <li>você é o criador e proprietário, ou possui as licenças e permissões necessárias para usar e
+          autorizar o uso de suas Contribuições nos Serviços;</li>
+        <li>você possui o consentimento por escrito de cada pessoa identificável em suas Contribuições para uso
+          de sua imagem ou nome;</li>
+        <li>suas Contribuições não são falsas, imprecisas ou enganosas;</li>
+        <li>suas Contribuições não são propaganda não solicitada, esquemas de pirâmide, correntes ou spam;</li>
+        <li>suas Contribuições não são obscenas, lascivas, violentas, difamatórias ou de outra forma
+          censuráveis (a nosso critério);</li>
+        <li>suas Contribuições não ridicularizam, zombam, difamam, intimidam ou abusam de ninguém;</li>
+        <li>suas Contribuições não são usadas para assediar ou ameaçar terceiros, nem para promover violência
+          contra qualquer pessoa ou grupo;</li>
+        <li>suas Contribuições não violam nenhuma lei, regulamento ou norma aplicável;</li>
+        <li>suas Contribuições não violam os direitos de privacidade ou de imagem de terceiros;</li>
+        <li>suas Contribuições não violam nenhuma lei relativa à proteção de menores;</li>
+        <li>suas Contribuições não incluem comentários ofensivos relacionados a raça, origem, gênero,
+          orientação sexual ou deficiência física; e</li>
+        <li>suas Contribuições não violam, nem se vinculam a materiais que violem, qualquer disposição destes
+          Termos Legais ou lei aplicável.</li>
+      </ul>
+      <p>
+        Qualquer uso dos Serviços em violação ao acima disposto viola estes Termos Legais e pode resultar em
+        encerramento ou suspensão de seus direitos de uso dos Serviços.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="licenca">9. Licença de Contribuição</h2>
+      <p>
+        Você e os Serviços concordam que podemos acessar, armazenar, processar e usar quaisquer informações e
+        dados pessoais que você fornecer, e suas escolhas (incluindo configurações).
+      </p>
+      <p>
+        Ao enviar sugestões ou outro feedback sobre os Serviços, você concorda que podemos usar e compartilhar
+        tal feedback para qualquer finalidade, sem compensação a você.
+      </p>
+      <p>
+        Não reivindicamos nenhuma propriedade sobre suas Contribuições. Você mantém total propriedade de todas
+        as suas Contribuições e quaisquer direitos de propriedade intelectual associados a elas. Não somos
+        responsáveis por declarações ou representações feitas em suas Contribuições. Você é o único responsável
+        por suas Contribuições aos Serviços e concorda expressamente em nos isentar de qualquer responsabilidade
+        relacionada a elas.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="gestao">10. Gestão dos Serviços</h2>
+      <p>Reservamo-nos o direito, mas não a obrigação, de:</p>
+      <ol>
+        <li>monitorar os Serviços em busca de violações destes Termos Legais;</li>
+        <li>tomar ação legal apropriada contra quem violar a lei ou estes Termos Legais, incluindo denunciar às
+          autoridades competentes;</li>
+        <li>recusar, restringir o acesso ou desabilitar quaisquer de suas Contribuições, a nosso critério;</li>
+        <li>remover dos Serviços conteúdos excessivamente grandes ou onerosos para nossos sistemas; e</li>
+        <li>gerenciar os Serviços de maneira a proteger nossos direitos e propriedade e garantir seu
+          funcionamento adequado.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 id="privacidade">11. Política de Privacidade</h2>
+      <p>
+        Nos importamos com a privacidade e segurança dos dados. Ao usar os Serviços, você concorda em ficar
+        vinculado à nossa Política de Privacidade publicada nos Serviços, que é incorporada a estes Termos
+        Legais. Os Serviços são hospedados no Brasil e nos Estados Unidos. Se você acessar os Serviços a partir
+        de qualquer outra região do mundo com leis diferentes sobre coleta, uso ou divulgação de dados pessoais,
+        ao continuar usando os Serviços você está transferindo seus dados ao Brasil e aos Estados Unidos, e
+        consente expressamente que seus dados sejam transferidos e processados nesses países.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="prazo">12. Prazo e Rescisão</h2>
+      <p>
+        Estes Termos Legais permanecem em pleno vigor e efeito enquanto você usar os Serviços. Sem limitar
+        qualquer outra disposição destes Termos Legais, reservamo-nos o direito de, a nosso exclusivo critério e
+        sem aviso prévio ou responsabilidade, negar acesso e uso dos Serviços (incluindo o bloqueio de
+        determinados endereços de IP) a qualquer pessoa, por qualquer motivo ou sem motivo, incluindo violação
+        de qualquer declaração, garantia ou compromisso contido nestes Termos Legais ou de qualquer lei ou
+        regulamento aplicável. Podemos encerrar seu uso ou participação nos Serviços, ou excluir sua conta e
+        qualquer conteúdo ou informação que você tenha publicado a qualquer momento, sem aviso prévio, a nosso
+        exclusivo critério.
+      </p>
+      <p>
+        Se encerrarmos ou suspendermos sua conta por qualquer motivo, você fica proibido de se cadastrar e criar
+        uma nova conta sob seu nome, um nome falso ou emprestado, ou o nome de terceiros. Além de encerrar ou
+        suspender sua conta, reservamo-nos o direito de tomar as medidas legais cabíveis.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="modificacoes">13. Modificações e Interrupções</h2>
+      <p>
+        Reservamo-nos o direito de alterar, modificar ou remover o conteúdo dos Serviços a qualquer momento ou
+        por qualquer motivo, a nosso exclusivo critério, sem aviso prévio. No entanto, não temos obrigação de
+        atualizar nenhuma informação em nossos Serviços. Não seremos responsáveis perante você ou terceiros por
+        qualquer modificação, alteração de preço, suspensão ou descontinuação dos Serviços.
+      </p>
+      <p>
+        Não podemos garantir que os Serviços estarão disponíveis o tempo todo. Podemos enfrentar problemas de
+        hardware, software ou outros, ou precisar realizar manutenção, resultando em interrupções, atrasos ou
+        erros. Você concorda que não temos qualquer responsabilidade por perdas, danos ou inconveniências
+        causados pela sua incapacidade de acessar ou usar os Serviços durante qualquer período de inatividade.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="lei">14. Legislação Aplicável</h2>
+      <p>
+        Estes Termos Legais são regidos e interpretados de acordo com as leis do Brasil. A Easy Soluções e você
+        consentem irrevogavelmente que os tribunais do Brasil terão jurisdição exclusiva para resolver qualquer
+        disputa relacionada a estes Termos Legais.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="disputas">15. Resolução de Disputas</h2>
+
+      <h3>Negociações informais</h3>
+      <p>
+        Para agilizar a resolução e controlar o custo de qualquer disputa, controvérsia ou reclamação
+        relacionada a estes Termos Legais (cada uma, uma "Disputa"), trazida por você ou por nós, as partes
+        concordam em primeiro tentar negociar informalmente qualquer Disputa por pelo menos <strong>30 dias</strong>
+        antes de iniciar arbitragem. Tais negociações informais começam mediante notificação por escrito de uma
+        parte à outra.
+      </p>
+
+      <h3>Arbitragem vinculante</h3>
+      <p>
+        Se as partes não conseguirem resolver a disputa por negociação informal, a disputa será resolvida
+        definitivamente por arbitragem, de acordo com as Regras de Arbitragem da Comissão das Nações Unidas
+        para o Direito Comercial Internacional (UNCITRAL) vigentes no momento do início da arbitragem. O número
+        de árbitros será <strong>um (1)</strong>. A sede da arbitragem será João Pessoa, Brasil. O idioma do
+        processo será o Português (Brasil). A lei aplicável será a lei substantiva do Brasil.
+      </p>
+
+      <h3>Restrições</h3>
+      <p>
+        As partes concordam que qualquer arbitragem será limitada à Disputa entre as partes individualmente. Na
+        máxima extensão permitida por lei, (a) nenhuma arbitragem será unida a qualquer outro processo; (b) não
+        há direito de arbitragem em regime de ação coletiva; e (c) não há direito de disputa ser apresentada em
+        nome do público em geral ou de outras pessoas.
+      </p>
+
+      <h3>Exceções às negociações informais e arbitragem</h3>
+      <p>
+        As partes concordam que as seguintes Disputas não estão sujeitas às disposições acima sobre negociação
+        informal e arbitragem vinculante: (a) disputas que busquem proteger a validade de direitos de propriedade
+        intelectual; (b) disputas relacionadas a alegações de roubo, pirataria, invasão de privacidade ou uso não
+        autorizado; e (c) qualquer pedido de tutela de urgência (medida cautelar).
+      </p>
+    </section>
+
+    <section>
+      <h2 id="correcoes">16. Correções</h2>
+      <p>
+        Pode haver informações nos Serviços que contenham erros tipográficos, imprecisões ou omissões,
+        incluindo descrições, preços, disponibilidade e outras informações. Reservamo-nos o direito de corrigir
+        quaisquer erros, imprecisões ou omissões, e de alterar ou atualizar as informações nos Serviços a
+        qualquer momento, sem aviso prévio.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="isencao">17. Isenção de Garantias</h2>
+      <p class="caps">
+        OS SERVIÇOS SÃO FORNECIDOS NO ESTADO EM QUE SE ENCONTRAM E CONFORME DISPONIBILIDADE. VOCÊ CONCORDA QUE
+        SEU USO DOS SERVIÇOS SERÁ POR SUA CONTA E RISCO. NA MÁXIMA EXTENSÃO PERMITIDA POR LEI, RENUNCIAMOS A
+        TODAS AS GARANTIAS, EXPRESSAS OU IMPLÍCITAS, RELACIONADAS AOS SERVIÇOS, INCLUINDO, SEM LIMITAÇÃO,
+        GARANTIAS IMPLÍCITAS DE COMERCIALIZAÇÃO, ADEQUAÇÃO A UM PROPÓSITO ESPECÍFICO E NÃO VIOLAÇÃO. NÃO
+        GARANTIMOS A EXATIDÃO OU COMPLETUDE DO CONTEÚDO DOS SERVIÇOS E NÃO ASSUMIMOS RESPONSABILIDADE POR ERROS,
+        IMPRECISÕES, DANOS PESSOAIS OU MATERIAIS, ACESSO NÃO AUTORIZADO A NOSSOS SERVIDORES, INTERRUPÇÕES DE
+        TRANSMISSÃO, VÍRUS OU OUTROS CÓDIGOS MALICIOSOS TRANSMITIDOS POR TERCEIROS, OU QUALQUER ERRO OU OMISSÃO
+        EM CONTEÚDO PUBLICADO ATRAVÉS DOS SERVIÇOS.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="limitacao">18. Limitação de Responsabilidade</h2>
+      <p class="caps">
+        EM NENHUM CASO NÓS, OU NOSSOS DIRETORES, FUNCIONÁRIOS OU AGENTES, SEREMOS RESPONSÁVEIS PERANTE VOCÊ OU
+        QUALQUER TERCEIRO POR DANOS DIRETOS, INDIRETOS, CONSEQUENCIAIS, EXEMPLARES, INCIDENTAIS, ESPECIAIS OU
+        PUNITIVOS, INCLUINDO LUCROS CESSANTES, PERDA DE RECEITA OU PERDA DE DADOS, DECORRENTES DO SEU USO DOS
+        SERVIÇOS, MESMO QUE TENHAMOS SIDO AVISADOS DA POSSIBILIDADE DE TAIS DANOS. NOSSA RESPONSABILIDADE
+        PERANTE VOCÊ, POR QUALQUER CAUSA E INDEPENDENTEMENTE DA FORMA DA AÇÃO, SERÁ SEMPRE LIMITADA AO VALOR
+        PAGO, SE HOUVER, POR VOCÊ A NÓS DURANTE O PERÍODO DE <strong>TRÊS (3) MESES</strong> ANTERIOR À CAUSA DA
+        AÇÃO.
+      </p>
+      <p class="muted">
+        Certas leis estaduais dos EUA e leis internacionais não permitem limitações sobre garantias implícitas ou
+        exclusão de certos danos. Se essas leis se aplicarem a você, algumas ou todas as isenções ou limitações
+        acima podem não se aplicar, e você pode ter direitos adicionais.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="indenizacao">19. Indenização</h2>
+      <p>
+        Você concorda em defender, indenizar e nos isentar de responsabilidade — incluindo nossas subsidiárias,
+        afiliadas e todos os respectivos diretores, agentes, sócios e funcionários — de qualquer perda, dano,
+        responsabilidade, reclamação ou demanda, incluindo honorários advocatícios razoáveis, feita por
+        terceiros em decorrência de: (1) uso dos Serviços; (2) violação destes Termos Legais; (3) violação de
+        suas declarações e garantias aqui contidas; (4) violação de direitos de terceiros, incluindo
+        propriedade intelectual; ou (5) qualquer ato prejudicial contra outro usuário dos Serviços com quem
+        você tenha se conectado através deles.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="dados">20. Dados do Usuário</h2>
+      <p>
+        Manteremos certos dados que você transmite aos Serviços para fins de gerenciamento de desempenho dos
+        Serviços, bem como dados relacionados ao seu uso deles. Embora realizemos backups rotineiros dos dados,
+        você é o único responsável por todos os dados que transmitir ou que se relacionem a qualquer atividade
+        realizada usando os Serviços. Você concorda que não teremos responsabilidade perante você por qualquer
+        perda ou corrupção de tais dados, e renuncia a qualquer direito de ação contra nós decorrente disso.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="eletronico">21. Comunicações Eletrônicas, Transações e Assinaturas</h2>
+      <p>
+        Visitar os Serviços, nos enviar e-mails e preencher formulários on-line constituem comunicações
+        eletrônicas. Você consente em receber comunicações eletrônicas e concorda que todos os acordos, avisos,
+        divulgações e outras comunicações que fornecemos eletronicamente satisfazem qualquer exigência legal de
+        que tal comunicação seja por escrito. Você concorda com o uso de assinaturas eletrônicas, contratos,
+        pedidos e outros registros, e com a entrega eletrônica de avisos, políticas e registros de transações
+        iniciadas ou concluídas por nós ou pelos Serviços.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="diversos">22. Disposições Gerais</h2>
+      <p>
+        Estes Termos Legais e quaisquer políticas ou regras operacionais publicadas por nós nos Serviços
+        constituem o acordo integral entre você e nós. Nossa falha em exercer ou fazer cumprir qualquer direito
+        ou disposição destes Termos Legais não constitui renúncia a tal direito ou disposição. Podemos ceder
+        quaisquer de nossos direitos e obrigações a terceiros a qualquer momento. Não seremos responsáveis por
+        qualquer perda, dano, atraso ou falha em agir causados por qualquer motivo além do nosso controle
+        razoável. Se qualquer disposição destes Termos Legais for considerada ilegal, nula ou inexequível, essa
+        disposição será considerada separável e não afetará a validade e exequibilidade das disposições
+        restantes. Não há relação de joint venture, sociedade, emprego ou agência criada entre você e nós em
+        decorrência destes Termos Legais ou do uso dos Serviços.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="contato">23. Contato</h2>
+      <p>
+        Para resolver uma reclamação sobre os Serviços ou para receber mais informações sobre o uso dos
+        Serviços, entre em contato conosco:
+      </p>
+      <div class="contact-box">
+        <p style="margin:0 0 4px;"><strong>Easy Soluções</strong></p>
+        <p style="margin:0 0 4px;">Rua Antonio Belarmino da Costa, 120</p>
+        <p style="margin:0 0 4px;">João Pessoa, Paraíba, 58063090</p>
+        <p style="margin:0 0 4px;">Brasil</p>
+        <p style="margin:0 0 4px;">Telefone: (83) 99302-4480</p>
+        <p style="margin:0;">E-mail: <a href="mailto:amorim.erick2020@gmail.com">amorim.erick2020@gmail.com</a></p>
+      </div>
+    </section>
+
+  </main>
 </div>
 
-<div class="doc-wrapper">
-    <div class="doc-card">
-
-        <!-- ── COLE O TEXTO DOS TERMOS AQUI ── -->
-        <div class="placeholder-box">
-            <i class="bi bi-file-earmark-text"></i>
-            <h3>Texto dos Termos de Uso</h3>
-            <p>Cole aqui o texto gerado pelo Termly ou outro gerador de termos de uso.</p>
-        </div>
-        <!-- ── FIM DO TEXTO ── -->
-
-    </div>
-</div>
-
-<footer class="footer">
-    <p>© 2025 Agendamento Digital — Todos os direitos reservados</p>
-    <p style="margin-top:6px;">
-        Dúvidas? <a href="https://wa.me/5583993024480" target="_blank">Fale conosco pelo WhatsApp</a>
-    </p>
+<footer>
+  Agendamento Digital — Termos de Uso
 </footer>
 
 </body>
