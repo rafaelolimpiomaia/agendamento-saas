@@ -1,197 +1,606 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Política de Privacidade — Agendamento Digital</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        :root {
-            --blue: #0d6efd;
-            --blue-dark: #0a58ca;
-            --blue-light: #e7f1ff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de Privacidade — Agendamento Digital</title>
+<style>
+  :root{
+    --bg: #0b0d10;
+    --bg-elev: #14171b;
+    --border: #23272d;
+    --text: #d8dbe0;
+    --text-dim: #8b929c;
+    --accent: #5eead4;
+    --accent-dim: #2a4a45;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height:1.65;
+  }
+  a{color:var(--accent); text-decoration:none;}
+  a:hover{text-decoration:underline;}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+  header{
+    padding:56px 24px 32px;
+    text-align:center;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, rgba(94,234,212,0.06), transparent);
+  }
+  header h1{
+    margin:0 0 8px;
+    font-size:2rem;
+    letter-spacing:-0.02em;
+    color:#fff;
+  }
+  header p{
+    margin:0;
+    color:var(--text-dim);
+    font-size:0.95rem;
+  }
 
-        body {
-            font-family: Arial, sans-serif;
-            color: #111827;
-            background: #f9fafb;
-        }
+  .layout{
+    display:flex;
+    max-width:1100px;
+    margin:0 auto;
+    padding:32px 24px 96px;
+    gap:40px;
+    align-items:flex-start;
+  }
 
-        .navbar {
-            background: #ffffff;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 14px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+  nav.toc{
+    position:sticky;
+    top:24px;
+    flex:0 0 260px;
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:20px;
+    max-height:calc(100vh - 48px);
+    overflow-y:auto;
+  }
+  nav.toc h2{
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--text-dim);
+    margin:0 0 12px;
+  }
+  nav.toc ol{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  nav.toc li{
+    margin-bottom:6px;
+  }
+  nav.toc a{
+    color:var(--text);
+    font-size:0.85rem;
+    display:block;
+    padding:4px 0;
+    border-left:2px solid transparent;
+    padding-left:10px;
+  }
+  nav.toc a:hover{
+    color:var(--accent);
+    text-decoration:none;
+    border-left-color:var(--accent);
+  }
 
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--blue);
-            text-decoration: none;
-        }
+  main{
+    flex:1;
+    min-width:0;
+  }
 
-        .btn-voltar {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 9px 18px;
-            border-radius: 10px;
-            border: 1.5px solid #e5e7eb;
-            background: #fff;
-            color: #374151;
-            font-weight: 600;
-            font-size: 0.875rem;
-            text-decoration: none;
-            transition: all .2s;
-        }
+  section{
+    margin-bottom:40px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--border);
+  }
+  section:last-child{border-bottom:none;}
 
-        .btn-voltar:hover { background: #f3f4f6; color: #111827; }
+  section h2{
+    font-size:1.15rem;
+    color:#fff;
+    margin:0 0 14px;
+    scroll-margin-top:24px;
+  }
+  section h3{
+    font-size:1rem;
+    color:var(--accent);
+    margin:20px 0 8px;
+    scroll-margin-top:24px;
+  }
+  section p{
+    color:var(--text);
+    margin:0 0 14px;
+    font-size:0.95rem;
+  }
+  section ul, section ol{
+    padding-left:20px;
+    margin:0 0 14px;
+  }
+  section li{
+    margin-bottom:8px;
+    font-size:0.95rem;
+    color:var(--text);
+  }
+  .lead{
+    font-size:0.9rem;
+    color:var(--accent);
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .summary-box{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:24px 28px;
+    margin-bottom:16px;
+  }
+  .summary-box h3{
+    margin-top:0;
+  }
+  .summary-item{
+    margin-bottom:16px;
+  }
+  .summary-item:last-child{margin-bottom:0;}
+  .summary-item p{
+    margin:0;
+    font-size:0.9rem;
+  }
+  .contact-box{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:20px 24px;
+  }
+  .contact-box strong{color:#fff;}
 
-        .doc-hero {
-            background: linear-gradient(135deg, var(--blue-light), #f0f6ff);
-            padding: 56px 24px 48px;
-            text-align: center;
-            border-bottom: 1px solid #e5e7eb;
-        }
+  footer{
+    text-align:center;
+    padding:24px;
+    color:var(--text-dim);
+    font-size:0.8rem;
+    border-top:1px solid var(--border);
+  }
 
-        .doc-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--blue);
-            color: #fff;
-            border-radius: 999px;
-            padding: 5px 14px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 16px;
-        }
+  @media (max-width: 860px){
+    .layout{flex-direction:column;}
+    nav.toc{
+      position:relative;
+      top:0;
+      width:100%;
+      flex:none;
+      max-height:none;
+    }
+  }
 
-        .doc-hero h1 {
-            font-size: clamp(1.6rem, 4vw, 2.2rem);
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 10px;
-        }
-
-        .doc-hero p {
-            font-size: 0.92rem;
-            color: #6b7280;
-        }
-
-        .doc-wrapper {
-            max-width: 780px;
-            margin: 48px auto;
-            padding: 0 24px 80px;
-        }
-
-        .doc-card {
-            background: #ffffff;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 20px;
-            padding: 48px 44px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.05);
-        }
-
-        .placeholder-box {
-            background: var(--blue-light);
-            border: 2px dashed #93c5fd;
-            border-radius: 14px;
-            padding: 40px 32px;
-            text-align: center;
-            color: #1d4ed8;
-        }
-
-        .placeholder-box i {
-            font-size: 2.5rem;
-            margin-bottom: 12px;
-            opacity: 0.6;
-        }
-
-        .placeholder-box h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .placeholder-box p {
-            font-size: 0.88rem;
-            opacity: 0.75;
-            margin: 0;
-        }
-
-        .footer {
-            background: #0f172a;
-            color: #94a3b8;
-            text-align: center;
-            padding: 28px 24px;
-            font-size: 0.82rem;
-        }
-
-        .footer a { color: #94a3b8; text-decoration: none; }
-        .footer a:hover { color: #fff; }
-
-        @media (max-width: 576px) {
-            .doc-card { padding: 28px 20px; }
-        }
-    </style>
+  .btn-voltar{
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 999;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text);
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+  .btn-voltar:hover{
+    border-color: var(--accent);
+    color: var(--accent);
+    text-decoration: none;
+    transform: translateX(-2px);
+  }
+  .btn-voltar svg{
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 600px){
+    .btn-voltar{
+      top: 12px;
+      left: 12px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+    }
+  }
+</style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="/" class="navbar-brand">
-        <i class="bi bi-scissors"></i>
-        Agendamento Digital
-    </a>
-    <a href="/cadastro" class="btn-voltar">
-        <i class="bi bi-arrow-left"></i>
-        Voltar
-    </a>
-</nav>
+<a href="/cadastro" id="btnVoltar" class="btn-voltar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5"></path>
+    <path d="M12 19l-7-7 7-7"></path>
+  </svg>
+  Voltar
+</a>
 
-<div class="doc-hero">
-    <div class="doc-badge">
-        <i class="bi bi-shield-check"></i>
-        Documento legal
-    </div>
-    <h1>Política de Privacidade</h1>
-    <p>Última atualização: <strong>a definir</strong></p>
-</div>
+<header>
+  <h1>Política de Privacidade</h1>
+  <p>Última atualização: 01 de agosto de 2026</p>
+</header>
 
-<div class="doc-wrapper">
-    <div class="doc-card">
+<div class="layout">
 
-        <!-- ── COLE O TEXTO DA POLÍTICA AQUI ── -->
-        <div class="placeholder-box">
-            <i class="bi bi-shield-lock"></i>
-            <h3>Texto da Política de Privacidade</h3>
-            <p>Cole aqui o texto gerado pelo Termly ou outro gerador de política de privacidade.</p>
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li><a href="#resumo">Resumo dos principais pontos</a></li>
+      <li><a href="#informacoes">1. Quais informações coletamos?</a></li>
+      <li><a href="#processamento">2. Como processamos suas informações?</a></li>
+      <li><a href="#compartilhamento">3. Quando e com quem compartilhamos?</a></li>
+      <li><a href="#cookies">4. Usamos cookies e tecnologias de rastreamento?</a></li>
+      <li><a href="#social">5. Como lidamos com logins sociais?</a></li>
+      <li><a href="#internacional">6. Suas informações são transferidas internacionalmente?</a></li>
+      <li><a href="#retencao">7. Por quanto tempo mantemos suas informações?</a></li>
+      <li><a href="#menores">8. Coletamos informações de menores?</a></li>
+      <li><a href="#direitos">9. Quais são seus direitos de privacidade?</a></li>
+      <li><a href="#lgpd">10. Seus direitos sob a LGPD (Brasil)</a></li>
+      <li><a href="#dnt">11. Controles para recursos de "não rastrear"</a></li>
+      <li><a href="#atualizacoes">12. Fazemos atualizações a este aviso?</a></li>
+      <li><a href="#contato">13. Como você pode nos contatar?</a></li>
+      <li><a href="#revisar">14. Como revisar, atualizar ou excluir seus dados?</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section>
+      <p>
+        Este Aviso de Privacidade da <strong>Easy Soluções</strong> ("nós", "nos", "nosso") descreve como e por
+        que podemos acessar, coletar, armazenar, usar e/ou compartilhar ("processar") suas informações pessoais
+        quando você utiliza nossos serviços ("Serviços"), incluindo quando você acessa ou usa o
+        <a href="https://agendamento-saas.onrender.com" target="_blank">agendamento-saas.onrender.com</a> ou
+        qualquer aplicação relacionada.
+      </p>
+      <p>
+        <strong>Dúvidas ou preocupações?</strong> A leitura deste Aviso de Privacidade ajudará você a entender
+        seus direitos e escolhas em relação à privacidade. Somos responsáveis por tomar decisões sobre como suas
+        informações pessoais são processadas. Se você não concorda com nossas políticas e práticas, por favor
+        não utilize nossos Serviços.
+      </p>
+    </section>
+
+    <section id="resumo">
+      <h2>Resumo dos principais pontos</h2>
+      <p class="lead">Este resumo traz os pontos-chave deste Aviso de Privacidade. Você pode saber mais sobre
+        cada tópico usando o sumário acima.</p>
+
+      <div class="summary-box">
+        <div class="summary-item">
+          <p><strong>Quais informações pessoais processamos?</strong> Quando você visita, usa ou navega pelos
+          Serviços, podemos processar informações pessoais dependendo de como você interage conosco, das
+          escolhas que faz e dos recursos que utiliza.</p>
         </div>
-        <!-- ── FIM DO TEXTO ── -->
+        <div class="summary-item">
+          <p><strong>Processamos informações pessoais sensíveis?</strong> Algumas informações podem ser
+          consideradas "sensíveis" em certas jurisdições, como origem racial ou étnica, orientação sexual e
+          crenças religiosas. <strong>Não processamos informações pessoais sensíveis.</strong></p>
+        </div>
+        <div class="summary-item">
+          <p><strong>Coletamos informações de terceiros?</strong> Podemos coletar informações de bancos de dados
+          públicos, parceiros de marketing, plataformas de redes sociais e outras fontes externas.</p>
+        </div>
+        <div class="summary-item">
+          <p><strong>Como processamos suas informações?</strong> Processamos suas informações para fornecer,
+          melhorar e administrar os Serviços, comunicar com você, para segurança e prevenção de fraudes, e para
+          cumprir a lei. Também podemos processar suas informações para outras finalidades com seu
+          consentimento.</p>
+        </div>
+        <div class="summary-item">
+          <p><strong>Em quais situações e com quais partes compartilhamos informações?</strong> Podemos
+          compartilhar informações em situações específicas e com terceiros específicos.</p>
+        </div>
+        <div class="summary-item">
+          <p><strong>Quais são seus direitos?</strong> Dependendo de onde você está localizado, a lei de
+          privacidade aplicável pode lhe garantir certos direitos sobre suas informações pessoais.</p>
+        </div>
+        <div class="summary-item">
+          <p><strong>Como exercer seus direitos?</strong> A maneira mais fácil é enviando uma solicitação de
+          acesso a dados, ou entrando em contato conosco. Consideraremos e atenderemos qualquer solicitação de
+          acordo com as leis de proteção de dados aplicáveis.</p>
+        </div>
+      </div>
+    </section>
 
-    </div>
+    <section>
+      <h2 id="informacoes">1. Quais informações coletamos?</h2>
+
+      <h3>Informações pessoais que você nos revela</h3>
+      <p class="lead">Em resumo: coletamos informações pessoais que você nos fornece.</p>
+      <p>
+        Coletamos informações pessoais que você nos fornece voluntariamente quando se cadastra nos Serviços,
+        demonstra interesse em obter informações sobre nós ou nossos produtos, participa de atividades nos
+        Serviços, ou de outra forma entra em contato conosco.
+      </p>
+      <p><strong>Informações sensíveis.</strong> Não processamos informações sensíveis.</p>
+      <p>
+        Todas as informações pessoais que você nos fornece devem ser verdadeiras, completas e precisas, e você
+        deve nos notificar sobre qualquer alteração nessas informações.
+      </p>
+
+      <h3>Informações coletadas automaticamente</h3>
+      <p class="lead">Em resumo: algumas informações — como seu endereço IP e/ou características do navegador e
+        dispositivo — são coletadas automaticamente quando você visita nossos Serviços.</p>
+      <p>
+        Coletamos automaticamente certas informações quando você visita, usa ou navega pelos Serviços. Essas
+        informações não revelam sua identidade específica (como nome ou dados de contato), mas podem incluir
+        informações sobre o dispositivo e uso, como endereço IP, características do navegador e dispositivo,
+        sistema operacional, preferências de idioma, URLs de referência, nome do dispositivo, país, localização,
+        informações sobre como e quando você usa nossos Serviços, e outras informações técnicas. Essas
+        informações são necessárias principalmente para manter a segurança e o funcionamento dos Serviços, e
+        para fins de análise e relatórios internos.
+      </p>
+      <p>Como muitas empresas, também coletamos informações por meio de cookies e tecnologias similares.</p>
+    </section>
+
+    <section>
+      <h2 id="processamento">2. Como processamos suas informações?</h2>
+      <p class="lead">Em resumo: processamos suas informações para fornecer, melhorar e administrar os Serviços,
+        comunicar com você, para segurança e prevenção de fraudes, e para cumprir a lei. Também podemos
+        processar suas informações para outras finalidades com seu consentimento.</p>
+      <p>
+        Processamos suas informações pessoais por diversos motivos, dependendo de como você interage com
+        nossos Serviços, incluindo para viabilizar o cadastro e login, o agendamento de horários, a comunicação
+        sobre sua assinatura, a prevenção de fraudes e o cumprimento de obrigações legais. Processamos suas
+        informações somente quando temos uma base legal válida para isso.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="compartilhamento">3. Quando e com quem compartilhamos suas informações pessoais?</h2>
+      <p class="lead">Em resumo: podemos compartilhar informações nas situações descritas nesta seção e/ou com
+        os seguintes terceiros.</p>
+      <p>Podemos precisar compartilhar suas informações pessoais nas seguintes situações:</p>
+      <ul>
+        <li><strong>Transferências de negócios.</strong> Podemos compartilhar ou transferir suas informações em
+          conexão com, ou durante negociações de, qualquer fusão, venda de ativos da empresa, financiamento ou
+          aquisição de todo ou parte do nosso negócio por outra empresa.</li>
+        <li><strong>Afiliadas.</strong> Podemos compartilhar suas informações com nossas afiliadas, caso em que
+          exigiremos que elas respeitem este Aviso de Privacidade.</li>
+        <li><strong>Parceiros de negócios.</strong> Podemos compartilhar suas informações com nossos parceiros de
+          negócios para oferecer determinados produtos, serviços ou promoções.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 id="cookies">4. Usamos cookies e outras tecnologias de rastreamento?</h2>
+      <p class="lead">Em resumo: podemos usar cookies e outras tecnologias de rastreamento para coletar e
+        armazenar suas informações.</p>
+      <p>
+        Podemos usar cookies e tecnologias de rastreamento semelhantes (como web beacons e pixels) para coletar
+        informações quando você interage com nossos Serviços. Algumas dessas tecnologias ajudam a manter a
+        segurança dos Serviços, prevenir falhas, corrigir erros, salvar suas preferências e auxiliar em funções
+        básicas do site.
+      </p>
+      <p>
+        Também permitimos que terceiros e prestadores de serviço usem tecnologias de rastreamento em nossos
+        Serviços para análise e publicidade, incluindo ajudar a gerenciar e exibir anúncios ou adaptar anúncios
+        aos seus interesses.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="social">5. Como lidamos com seus logins sociais?</h2>
+      <p class="lead">Em resumo: se você optar por se cadastrar ou entrar em nossos Serviços usando uma conta de
+        rede social, podemos ter acesso a certas informações sobre você.</p>
+      <p>
+        Nossos Serviços oferecem a possibilidade de cadastro e login usando dados de contas de redes sociais de
+        terceiros. Quando você escolhe fazer isso, recebemos certas informações de perfil do seu provedor de
+        rede social, que geralmente incluem nome, e-mail, lista de amigos e foto de perfil, entre outras
+        informações que você tornou públicas nessa plataforma.
+      </p>
+      <p>
+        Usaremos as informações recebidas apenas para as finalidades descritas neste Aviso de Privacidade.
+        Não controlamos, e não somos responsáveis, por outros usos de suas informações pessoais pelo provedor de
+        rede social terceirizado. Recomendamos revisar a política de privacidade dele.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="internacional">6. Suas informações são transferidas internacionalmente?</h2>
+      <p class="lead">Em resumo: podemos transferir, armazenar e processar suas informações em países diferentes
+        do seu.</p>
+      <p>
+        Nossos servidores estão localizados no Brasil e nos Estados Unidos. Independentemente da sua
+        localização, suas informações podem ser transferidas, armazenadas e processadas por nós em nossas
+        instalações e nas instalações de terceiros com quem possamos compartilhar suas informações pessoais
+        (veja a seção "Quando e com quem compartilhamos suas informações pessoais?" acima).
+      </p>
+      <p>
+        Se você reside no Espaço Econômico Europeu (EEE), Reino Unido ou Suíça, essas leis de proteção de dados
+        podem não ser tão abrangentes quanto as do seu país. Ainda assim, tomaremos todas as medidas necessárias
+        para proteger suas informações pessoais de acordo com este Aviso de Privacidade e a lei aplicável.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="retencao">7. Por quanto tempo mantemos suas informações?</h2>
+      <p class="lead">Em resumo: mantemos suas informações pelo tempo necessário para cumprir as finalidades
+        descritas neste Aviso de Privacidade, salvo se exigido de outra forma por lei.</p>
+      <p>
+        Manteremos suas informações pessoais apenas pelo tempo necessário para as finalidades estabelecidas
+        neste Aviso de Privacidade, a menos que um período de retenção mais longo seja exigido ou permitido por
+        lei (como requisitos fiscais, contábeis ou outros requisitos legais).
+      </p>
+      <p>
+        Quando não houver mais necessidade legítima de negócio em curso para processar suas informações
+        pessoais, iremos excluí-las ou anonimizá-las ou, se isso não for possível (por exemplo, porque suas
+        informações foram armazenadas em backups), armazenaremos suas informações com segurança e as isolaremos
+        de qualquer processamento adicional até que a exclusão seja possível.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="menores">8. Coletamos informações de menores?</h2>
+      <p class="lead">Em resumo: não coletamos, conscientemente, dados de crianças menores de 18 anos, nem
+        fazemos marketing direcionado a elas.</p>
+      <p>
+        Não coletamos, solicitamos ou fazemos marketing conscientemente para menores de 18 anos, nem vendemos
+        conscientemente tais informações pessoais. Ao usar os Serviços, você declara ter pelo menos 18 anos, ou
+        ser o pai, mãe ou responsável legal de tal menor e consentir com o uso dos Serviços pelo menor
+        dependente. Se tomarmos conhecimento de que informações pessoais de usuários menores de 18 anos foram
+        coletadas, desativaremos a conta e tomaremos medidas razoáveis para excluir prontamente esses dados de
+        nossos registros. Se você tiver conhecimento de quaisquer dados que possamos ter coletado de crianças
+        menores de 18 anos, entre em contato conosco em
+        <a href="mailto:amorim.erick2020@gmail.com">amorim.erick2020@gmail.com</a>.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="direitos">9. Quais são seus direitos de privacidade?</h2>
+      <p class="lead">Em resumo: você pode revisar, alterar ou encerrar sua conta a qualquer momento, dependendo
+        do seu país, estado ou província de residência.</p>
+
+      <h3>Retirada do seu consentimento</h3>
+      <p>
+        Se estivermos contando com o seu consentimento para processar suas informações pessoais, você tem o
+        direito de retirá-lo a qualquer momento, entrando em contato conosco usando os dados fornecidos na
+        seção "Como você pode nos contatar sobre este aviso?" abaixo.
+      </p>
+      <p>
+        No entanto, isso não afetará a legalidade do processamento realizado antes da retirada, nem, quando a
+        lei aplicável permitir, o processamento de suas informações pessoais conduzido com base em outros
+        fundamentos legais além do consentimento.
+      </p>
+
+      <h3>Informações da conta</h3>
+      <p>
+        Se você desejar, a qualquer momento, revisar ou alterar as informações da sua conta, ou encerrar sua
+        conta, pode entrar em contato conosco usando as informações de contato fornecidas.
+      </p>
+      <p>
+        Mediante sua solicitação de encerramento de conta, desativaremos ou excluiremos sua conta e informações
+        de nossos bancos de dados ativos. No entanto, podemos reter algumas informações em nossos arquivos para
+        prevenir fraudes, solucionar problemas, auxiliar em investigações, fazer cumprir nossos termos legais
+        e/ou cumprir exigências legais aplicáveis.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="lgpd">10. Seus direitos sob a LGPD (Brasil)</h2>
+      <p class="lead">Em resumo: se você está no Brasil, a Lei Geral de Proteção de Dados (Lei nº 13.709/2018)
+        garante direitos específicos sobre seus dados pessoais, que respeitamos integralmente.</p>
+      <p>
+        Como titular de dados sob a Lei Geral de Proteção de Dados Pessoais (LGPD), você tem o direito de, a
+        qualquer momento e mediante requisição, obter de nós:
+      </p>
+      <ul>
+        <li><strong>Confirmação da existência de tratamento</strong> dos seus dados pessoais;</li>
+        <li><strong>Acesso</strong> aos seus dados;</li>
+        <li><strong>Correção</strong> de dados incompletos, inexatos ou desatualizados;</li>
+        <li><strong>Anonimização, bloqueio ou eliminação</strong> de dados desnecessários, excessivos ou
+          tratados em desconformidade com a LGPD;</li>
+        <li><strong>Portabilidade</strong> dos dados a outro fornecedor de serviço ou produto, mediante
+          requisição expressa;</li>
+        <li><strong>Eliminação</strong> dos dados pessoais tratados com o seu consentimento, exceto nas
+          hipóteses de conservação previstas em lei;</li>
+        <li><strong>Informação</strong> sobre as entidades públicas e privadas com as quais compartilhamos seus
+          dados;</li>
+        <li><strong>Informação</strong> sobre a possibilidade de não fornecer consentimento e sobre as
+          consequências da negativa;</li>
+        <li><strong>Revogação do consentimento</strong>, a qualquer momento, mediante manifestação expressa; e</li>
+        <li><strong>Revisão</strong> de decisões tomadas unicamente com base em tratamento automatizado de
+          dados pessoais que afetem seus interesses.</li>
+      </ul>
+
+      <h3>Base legal para o tratamento</h3>
+      <p>
+        Tratamos seus dados pessoais com base nas hipóteses legais previstas no art. 7º da LGPD, especialmente:
+        (a) execução de contrato do qual você é parte, como a prestação do serviço de agendamento; (b)
+        cumprimento de obrigação legal ou regulatória; (c) seu consentimento, quando aplicável; e (d) legítimo
+        interesse, observados os limites e direitos previstos na lei.
+      </p>
+
+      <h3>Encarregado de Proteção de Dados (DPO)</h3>
+      <p>
+        Para exercer qualquer um dos direitos acima, ou para dúvidas relacionadas ao tratamento dos seus dados
+        pessoais à luz da LGPD, entre em contato com nosso encarregado pelo e-mail
+        <a href="mailto:amorim.erick2020@gmail.com">amorim.erick2020@gmail.com</a>. Responderemos sua
+        solicitação dentro do prazo estabelecido pela legislação aplicável.
+      </p>
+
+      <h3>Autoridade Nacional de Proteção de Dados (ANPD)</h3>
+      <p>
+        Caso você entenda que seus dados não estão sendo tratados de forma adequada, além de nos contatar
+        diretamente, você também tem o direito de apresentar uma reclamação à Autoridade Nacional de Proteção
+        de Dados (ANPD), órgão responsável por fiscalizar o cumprimento da LGPD no Brasil.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="dnt">11. Controles para recursos de "não rastrear" (Do-Not-Track)</h2>
+      <p>
+        A maioria dos navegadores e alguns sistemas operacionais e aplicativos móveis incluem um recurso
+        "Do-Not-Track" (DNT) que você pode ativar para sinalizar sua preferência de privacidade de não ter suas
+        atividades de navegação online monitoradas e coletadas. Até o momento, nenhum padrão tecnológico
+        uniforme para reconhecer e implementar sinais DNT foi finalizado. Como tal, não respondemos atualmente a
+        sinais DNT do navegador ou a qualquer outro mecanismo que comunique automaticamente sua escolha de não
+        ser rastreado online. Se um padrão for adotado no futuro que devamos seguir, informaremos você por meio
+        de uma versão revisada deste Aviso de Privacidade.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="atualizacoes">12. Fazemos atualizações a este aviso?</h2>
+      <p class="lead">Em resumo: sim, atualizaremos este aviso conforme necessário para permanecer em
+        conformidade com as leis relevantes.</p>
+      <p>
+        Podemos atualizar este Aviso de Privacidade periodicamente. A versão atualizada será indicada pela data
+        de "Última atualização" no topo deste Aviso de Privacidade. Se fizermos alterações materiais, poderemos
+        notificá-lo publicando um aviso de tais alterações de forma destacada ou enviando uma notificação
+        diretamente. Encorajamos você a revisar este Aviso de Privacidade com frequência para se manter
+        informado sobre como protegemos suas informações.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="contato">13. Como você pode nos contatar sobre este aviso?</h2>
+      <p>Se você tiver dúvidas ou comentários sobre este aviso, pode entrar em contato conosco:</p>
+      <div class="contact-box">
+        <p style="margin:0 0 4px;"><strong>Easy Soluções</strong></p>
+        <p style="margin:0 0 4px;">Rua Antonio Belarmino da Costa, 120</p>
+        <p style="margin:0 0 4px;">João Pessoa, Paraíba, 58063090</p>
+        <p style="margin:0 0 4px;">Brasil</p>
+        <p style="margin:0 0 4px;">Telefone: (83) 99302-4480</p>
+        <p style="margin:0;">E-mail: <a href="mailto:amorim.erick2020@gmail.com">amorim.erick2020@gmail.com</a></p>
+      </div>
+    </section>
+
+    <section>
+      <h2 id="revisar">14. Como você pode revisar, atualizar ou excluir os dados que coletamos?</h2>
+      <p>
+        Com base nas leis aplicáveis do seu país, você pode ter o direito de solicitar acesso às informações
+        pessoais que coletamos sobre você, detalhes sobre como as processamos, corrigir imprecisões ou excluir
+        suas informações pessoais. Você também pode ter o direito de retirar seu consentimento ao nosso
+        processamento de suas informações pessoais. Esses direitos podem ser limitados em algumas circunstâncias
+        pela lei aplicável. Para solicitar a revisão, atualização ou exclusão de suas informações pessoais,
+        entre em contato pelo e-mail
+        <a href="mailto:amorim.erick2020@gmail.com">amorim.erick2020@gmail.com</a>.
+      </p>
+    </section>
+
+  </main>
 </div>
 
-<footer class="footer">
-    <p>© 2025 Agendamento Digital — Todos os direitos reservados</p>
-    <p style="margin-top:6px;">
-        Dúvidas? <a href="https://wa.me/5583993024480" target="_blank">Fale conosco pelo WhatsApp</a>
-    </p>
+<footer>
+  Agendamento Digital — Política de Privacidade
 </footer>
 
 </body>
