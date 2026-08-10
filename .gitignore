@@ -10,9 +10,6 @@ venv/
 ENV/
 env/
 
-# Environment variables
-.env
-
 # Django
 *.log
 *.pot
@@ -28,3 +25,11 @@ db.sqlite3
 # System
 .DS_Store
 Thumbs.db
+
+.env
+.env.local
+.env.*.local
+.env.production
+*.env
+!.env.example
+
