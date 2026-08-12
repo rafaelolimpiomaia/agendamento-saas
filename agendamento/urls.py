@@ -43,4 +43,9 @@ urlpatterns = [
     path('painel/agendamento/manual/', views.agendamento_manual, name='agendamento_manual'),
     path('onboarding/', views_public.onboarding, name='onboarding'),
     path('painel/personalizar/', views.personalizar_salao, name='personalizar_salao'),
-]
+    path('bloquear-slot/', views.bloquear_slot, name='bloquear_slot'),
+    path('desbloquear-slot/', views.desbloquear_slot, name='desbloquear_slot'),
+    path('disponibilidade/<int:servico_id>/<str:data>/', views.disponibilidade_quadra, name='disponibilidade_quadra'),
+    path('pagamento/<int:pedido_id>/', views.finalizar_pagamento, name='finalizar_pagamento'),
+    path('bloquear-intervalo/', views.bloquear_intervalo, name='bloquear_intervalo'),
+    ]

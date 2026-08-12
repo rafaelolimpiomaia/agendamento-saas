@@ -512,6 +512,394 @@ textarea {
     border: 1px solid #d5dde7;
 }
 
+
+/* =========================================================
+   TIME WHEEL 3D — seletor circular/infinito
+   ========================================================= */
+
+.time-range-picker {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+}
+
+.time-select-group {
+    min-width: 0;
+}
+
+.time-wheel {
+    --wheel-item-height: 58px;
+    --wheel-visible-items: 5;
+    position: relative;
+    height: calc(var(--wheel-item-height) * var(--wheel-visible-items));
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    perspective: 700px;
+    touch-action: pan-y;
+    cursor: default;
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(248,250,252,.98), rgba(255,255,255,.98));
+    border: 1px solid #dce5ef;
+    box-shadow:
+        inset 0 18px 28px rgba(15,23,42,.05),
+        inset 0 -18px 28px rgba(15,23,42,.05),
+        0 8px 20px rgba(15,23,42,.04);
+}
+
+
+.time-wheel-item {
+    cursor: pointer;
+}
+
+.time-wheel.is-locked .time-wheel-item {
+    cursor: not-allowed;
+}
+
+.time-wheel::-webkit-scrollbar {
+    display: none;
+}
+
+.time-wheel:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--cor-primaria) 20%, transparent);
+    outline-offset: 3px;
+}
+
+.time-wheel-disabled {
+    opacity: .72;
+    cursor: not-allowed;
+}
+
+.time-wheel-list {
+    position: relative;
+    width: 100%;
+    padding-block: calc(var(--wheel-item-height) * 2);
+}
+
+.time-wheel-item {
+    position: relative;
+    height: var(--wheel-item-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    user-select: none;
+    -webkit-user-select: none;
+    transform-origin: center center;
+    transition:
+        transform .14s linear,
+        opacity .14s linear,
+        filter .14s linear;
+    will-change: transform, opacity;
+}
+
+.time-wheel-item-inner {
+    min-width: 120px;
+    padding: 10px 18px;
+    border-radius: 16px;
+    text-align: center;
+    font-size: 1.18rem;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -.025em;
+    color: #64748b;
+    transition:
+        background .16s ease,
+        color .16s ease,
+        box-shadow .16s ease,
+        transform .16s ease;
+}
+
+.time-wheel-item.is-selected .time-wheel-item-inner {
+    color: #fff;
+    background: linear-gradient(145deg, var(--primary-600), var(--primary-500));
+    box-shadow:
+        0 14px 28px rgba(47,108,240,.22),
+        inset 0 1px 0 rgba(255,255,255,.18);
+    transform: scale(1.03);
+}
+
+.time-wheel-item.is-disabled .time-wheel-item-inner {
+    color: #a5b1c0;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            #f1f4f8,
+            #f1f4f8 7px,
+            #e7ecf2 7px,
+            #e7ecf2 14px
+        );
+    border: 1px dashed #d4dde8;
+    box-shadow: none;
+}
+
+.time-wheel-highlight {
+    position: absolute;
+    z-index: 4;
+    pointer-events: none;
+    left: 10px;
+    right: 10px;
+    top: 50%;
+    height: var(--wheel-item-height);
+    transform: translateY(-50%);
+    border-top: 1px solid color-mix(in srgb, var(--cor-primaria) 18%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--cor-primaria) 18%, transparent);
+    border-radius: 16px;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.7),
+        inset 0 -1px 0 rgba(255,255,255,.7);
+}
+
+.time-wheel-fade {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    left: 0;
+    right: 0;
+    height: calc(var(--wheel-item-height) * 1.65);
+}
+
+.time-wheel-fade-top {
+    top: 0;
+    background: linear-gradient(180deg, #f8fafc 12%, rgba(248,250,252,.72) 42%, transparent 100%);
+}
+
+.time-wheel-fade-bottom {
+    bottom: 0;
+    background: linear-gradient(0deg, #f8fafc 12%, rgba(248,250,252,.72) 42%, transparent 100%);
+}
+
+.time-wheel-status {
+    min-height: 20px;
+    margin-top: 8px;
+    text-align: center;
+    color: #8a99ab;
+    font-size: .78rem;
+    font-weight: 800;
+}
+
+
+
+.time-confirm-btn {
+    width: 100%;
+    margin-top: 8px;
+    min-height: 44px;
+    border: 1px solid #d7e0eb;
+    border-radius: 13px;
+    background: #fff;
+    color: var(--primary-600);
+    font-weight: 900;
+    font-size: .88rem;
+    cursor: pointer;
+    transition: .18s ease;
+}
+
+.time-confirm-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: var(--primary-500);
+    box-shadow: 0 8px 18px rgba(47,108,240,.12);
+}
+
+.time-confirm-btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.time-confirm-btn.is-confirmed {
+    color: #15803d;
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+}
+
+.time-wheel.is-locked {
+    pointer-events: none;
+    opacity: .66;
+    cursor: default;
+}
+
+.booking-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15,23,42,.58);
+    backdrop-filter: blur(7px);
+}
+
+.booking-confirm-overlay.is-open {
+    display: flex;
+}
+
+.booking-confirm-modal {
+    position: relative;
+    width: min(100%, 480px);
+    padding: 28px;
+    border: 1px solid rgba(255,255,255,.55);
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 30px 80px rgba(15,23,42,.28);
+    animation: bookingConfirmIn .18s ease-out;
+}
+
+.booking-confirm-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.booking-confirm-icon {
+    width: 58px;
+    height: 58px;
+    margin-bottom: 16px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: #eff6ff;
+    color: var(--primary-600);
+    font-size: 1.5rem;
+}
+
+.booking-confirm-modal h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 1.45rem;
+    font-weight: 950;
+}
+
+.booking-confirm-subtitle {
+    margin: 8px 0 20px;
+    color: #64748b;
+    line-height: 1.55;
+}
+
+.booking-confirm-details {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #f8fafc;
+}
+
+.booking-confirm-details > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+}
+
+.booking-confirm-details span {
+    color: #64748b;
+    font-size: .86rem;
+    font-weight: 700;
+}
+
+.booking-confirm-details strong {
+    color: #172033;
+    font-size: .98rem;
+    font-weight: 950;
+    text-align: right;
+}
+
+.booking-confirm-details > div:last-child strong {
+    color: var(--primary-600);
+    font-size: 1.12rem;
+}
+
+.booking-confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.booking-confirm-actions .btn-main,
+.booking-confirm-actions .btn-back {
+    min-height: 48px;
+    width: 100%;
+}
+
+.booking-confirm-cancel {
+    justify-content: center;
+}
+
+@keyframes bookingConfirmIn {
+    from { opacity: 0; transform: translateY(8px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 575.98px) {
+    .booking-confirm-modal {
+        padding: 24px 18px 18px;
+        border-radius: 22px;
+    }
+
+    .booking-confirm-actions {
+        grid-template-columns: 1fr;
+    }
+}
+.time-wheel-status.is-warning {
+    color: #b45309;
+}
+
+.time-wheel-status.is-ready {
+    color: var(--primary-600);
+}
+
+.time-wheel::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+@media (max-width: 767.98px) {
+    .time-range-picker {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .time-range-arrow {
+        width: 100%;
+        height: 34px;
+        transform: rotate(90deg);
+    }
+
+    .time-wheel {
+        --wheel-item-height: 56px;
+        height: calc(var(--wheel-item-height) * 5);
+        border-radius: 22px;
+    }
+
+    .time-wheel-item-inner {
+        font-size: 1.12rem;
+        min-width: 110px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .time-wheel-item,
+    .time-wheel-item-inner {
+        transition: none;
+    }
+}
+
 .horarios-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -601,6 +989,202 @@ textarea {
 .slot-meta i {
     font-size: 0.8rem;
 }
+
+.resumo-reserva {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: resumoApareceStagger 0.4s ease;
+}
+
+@keyframes resumoApareceStagger {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.resumo-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 2px 6px;
+    color: var(--primary-600);
+    font-size: 0.82rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.resumo-header i {
+    font-size: 0.95rem;
+}
+
+.resumo-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.resumo-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #ffffff, #fbfcfe);
+    border: 1px solid #e5eaf0;
+    box-shadow:
+        0 10px 24px rgba(15, 23, 42, 0.05),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.resumo-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--item-accent, var(--primary-500));
+}
+
+.resumo-item:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 16px 32px rgba(15, 23, 42, 0.08),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+.resumo-item.item-horario { --item-accent: #3b82f6; }
+.resumo-item.item-duracao { --item-accent: #f59e0b; }
+.resumo-item.item-valor   { --item-accent: #16a34a; }
+
+.resumo-icon {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    background: color-mix(in srgb, var(--item-accent, var(--primary-500)) 12%, white);
+    color: var(--item-accent, var(--primary-600));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--item-accent, var(--primary-500)) 22%, transparent);
+}
+
+.resumo-icon.destaque-icon {
+    background: linear-gradient(145deg, var(--item-accent, var(--primary-600)), color-mix(in srgb, var(--item-accent, var(--primary-500)) 80%, black 8%));
+    color: #ffffff;
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--item-accent, var(--primary-500)) 45%, transparent);
+}
+
+.resumo-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.resumo-label {
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #9aa8b9;
+}
+
+.resumo-valor {
+    font-size: 1.28rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: #1e293b;
+    line-height: 1.2;
+}
+
+.resumo-valor.destaque {
+    color: #16a34a;
+    font-size: 1.45rem;
+}
+
+.resumo-divider {
+    display: none;
+}
+
+@media (min-width: 576px) {
+    .resumo-body {
+        flex-direction: row;
+        gap: 12px;
+    }
+
+    .resumo-item {
+        flex: 1;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 20px;
+    }
+
+    .resumo-item::before {
+        width: 100%;
+        height: 4px;
+        top: 0;
+        left: 0;
+        bottom: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .resumo-item {
+        padding: 16px 18px;
+    }
+
+    .resumo-icon {
+        width: 46px;
+        height: 46px;
+        font-size: 1.15rem;
+        border-radius: 14px;
+    }
+
+    .resumo-valor {
+        font-size: 1.15rem;
+    }
+
+    .resumo-valor.destaque {
+        font-size: 1.3rem;
+    }
+}
+
+.horario-card.selecionado span {
+    color: #ffffff;
+    background: linear-gradient(145deg, var(--primary-600), var(--primary-500));
+    border-color: transparent;
+    box-shadow:
+        0 22px 42px rgba(47, 108, 240, 0.22),
+        inset 0 1px 0 rgba(255,255,255,0.16);
+}
+
+.horario-card.selecionado span::after {
+    content: "\F26A";
+    font-family: "bootstrap-icons";
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.16);
+    color: #ffffff;
+    font-size: 0.76rem;
+}
+
+
 
 .horario-card input:checked + span {
     color: #ffffff;
@@ -933,6 +1517,35 @@ span.flatpickr-weekday {
 }
 
 @media (max-width: 767.98px) {
+
+    .time-range-picker {
+        gap: 10px;
+    }
+
+    .time-wheel {
+        --wheel-item-height: 56px;
+    }
+
+    .time-range-arrow {
+        height: 54px;
+        width: 38px;
+    }
+
+    .resumo-header {
+        padding: 12px 16px;
+        font-size: 0.8rem;
+    }
+
+    .resumo-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 1.05rem;
+    }
+
+    .resumo-valor {
+        font-size: 1.2rem;
+    }
+
     .page-shell {
         padding: 10px;
         align-items: flex-start;
@@ -1413,26 +2026,11 @@ span.flatpickr-weekday {
                     </div>
                 </div>
 
-                <form method="POST">
+                <div>
                     {% csrf_token %}
                     <input type="hidden" name="data" value="{{ data_selecionada }}">
 
-                    {% if form.horario.errors %}
-                        <div class="error-box">
-                            <div class="error-icon">
-                                <i class="bi bi-exclamation-triangle"></i>
-                            </div>
-
-                            <div>
-                                <div class="error-title">Horário não disponível</div>
-                                <p class="error-text">
-                                    {% for error in form.horario.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </p>
-                            </div>
-                        </div>
-                    {% endif %}
+                    
 
                     <div class="section-block">
                         <div class="section-header">
@@ -1486,62 +2084,135 @@ span.flatpickr-weekday {
                             </div>
                             {% endif %}
 
-                            <div class="legend-row">
-                                <span class="legend-chip">
-                                    <span class="legend-box available"></span>
-                                    Disponível
-                                </span>
+                            <div class="time-range-picker" id="time-range-picker"
+                                data-servico-id="{{ servico.id }}"
+                                data-data="{{ data_selecionada }}"
+                                data-preco-hora="{{ preco_hora }}">
 
-                                <span class="legend-chip">
-                                    <span class="legend-dot selected"></span>
-                                    Selecionado
-                                </span>
+                                <div class="time-select-group">
+                                    <label class="form-label">
+                                        <i class="bi bi-play-circle"></i> Horário inicial
+                                    </label>
 
-                                <span class="legend-chip">
-                                    <span class="legend-box busy"></span>
-                                    Ocupado
-                                </span>
+                                    <div class="time-wheel" id="wheel-inicio" tabindex="0" aria-label="Escolha o horário inicial">
+                                        <div class="time-wheel-fade time-wheel-fade-top"></div>
+                                        <div class="time-wheel-fade time-wheel-fade-bottom"></div>
+                                        <div class="time-wheel-highlight"></div>
+                                        <div class="time-wheel-list" id="wheel-inicio-list"></div>
+                                    </div>
 
-                                <span class="legend-chip">
-                                    <span class="legend-box busy" style="background: repeating-linear-gradient(45deg,#fff3cd,#fff3cd 5px,#ffe69c 5px,#ffe69c 10px); border-color:#ffc107;"></span>
-                                    Menos de 24h
-                                    
-                                </span>
+                                    <input type="hidden" id="horario-inicio" value="">
+                                    <div class="time-wheel-status" id="wheel-inicio-status">
+                                        Deslize para escolher
+                                    </div>
+                                    <button type="button" class="time-confirm-btn" id="btn-confirmar-inicio" disabled onclick="confirmarHorarioInicio()">
+                                        <i class="bi bi-check-circle"></i>
+                                        Confirmar horário inicial
+                                    </button>
+                                </div>
+
+                                <div class="time-range-arrow" aria-hidden="true">
+                                    <i class="bi bi-arrow-right"></i>
+                                </div>
+
+                                <div class="time-select-group">
+                                    <label class="form-label">
+                                        <i class="bi bi-stop-circle"></i> Horário final
+                                    </label>
+
+                                    <div class="time-wheel time-wheel-disabled" id="wheel-fim" tabindex="0" aria-label="Escolha o horário final">
+                                        <div class="time-wheel-fade time-wheel-fade-top"></div>
+                                        <div class="time-wheel-fade time-wheel-fade-bottom"></div>
+                                        <div class="time-wheel-highlight"></div>
+                                        <div class="time-wheel-list" id="wheel-fim-list"></div>
+                                    </div>
+
+                                    <input type="hidden" id="horario-fim" value="" disabled>
+                                    <div class="time-wheel-status" id="wheel-fim-status">
+                                        Confirme primeiro o horário inicial
+                                    </div>
+                                    <button type="button" class="time-confirm-btn time-confirm-btn-final" id="btn-confirmar-fim" disabled onclick="abrirConfirmacaoFinal()">
+                                        <i class="bi bi-check2-circle"></i>
+                                        Confirmar horário final
+                                    </button>
+                                </div>
                             </div>
 
-                            <div class="horarios-grid">
-                                {% for horario in horarios %}
-                                    {% if horario in horarios_menos_24h %}
-                                        <label class="horario-card antecedencia">
-                                            <input type="radio" name="horario" value="{{ horario }}" disabled>
-                                            <span>
-                                                <strong class="slot-time">{{ horario }}</strong>
-                                                <small class="slot-meta">
-                                                    <i class="bi bi-clock-history"></i>
-                                                    Menos de 24h
-                                                </small>
-                                            </span>
-                                        </label>
-                                    {% elif horario in horarios_ocupados or horario in bloqueados %}
-                                        <label class="horario-card ocupado">
-                                            <input type="radio" name="horario" value="{{ horario }}" disabled>
-                                            <span>
-                                                <strong class="slot-time">{{ horario }}</strong>
-                                                <small class="slot-meta">
-                                                    <i class="bi bi-lock"></i>
-                                                    Ocupado
-                                                </small>
-                                            </span>
-                                        </label>
-                                    {% else %}
-                                        <label class="horario-card">
-                                            <input type="radio" name="horario" value="{{ horario }}">
-                                            <span>
-                                                <strong class="slot-time">{{ horario }}</strong>
-                                            </span>
-                                        </label>
-                                    {% endif %}
-                                {% endfor %}
+                            <div class="resumo-reserva" id="resumo-reserva" style="display:none;">
+                                <div class="resumo-header">
+                                    <i class="bi bi-receipt"></i>
+                                    <span>Resumo da reserva</span>
+                                </div>
+
+                                <div class="resumo-body">
+                                    <div class="resumo-item">
+                                        <div class="resumo-icon"><i class="bi bi-clock"></i></div>
+                                        <div class="resumo-texto">
+                                            <span class="resumo-label">Horário</span>
+                                            <span class="resumo-valor" id="horario-resumo">—</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="resumo-divider"></div>
+
+                                    <div class="resumo-item">
+                                        <div class="resumo-icon"><i class="bi bi-hourglass-split"></i></div>
+                                        <div class="resumo-texto">
+                                            <span class="resumo-label">Duração</span>
+                                            <span class="resumo-valor" id="duracao-texto">—</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="resumo-divider"></div>
+
+                                    <div class="resumo-item">
+                                        <div class="resumo-icon destaque-icon"><i class="bi bi-cash-coin"></i></div>
+                                        <div class="resumo-texto">
+                                            <span class="resumo-label">Valor total</span>
+                                            <span class="resumo-valor destaque">R$ <span id="valor-total-exibicao">0,00</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="booking-confirm-overlay" id="booking-confirm-overlay" aria-hidden="true">
+                                <div class="booking-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="booking-confirm-title">
+                                    <button type="button" class="booking-confirm-close" onclick="fecharConfirmacaoFinal()" aria-label="Fechar">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+
+                                    <div class="booking-confirm-icon">
+                                        <i class="bi bi-calendar-check"></i>
+                                    </div>
+
+                                    <h3 id="booking-confirm-title">Tem certeza deste agendamento?</h3>
+                                    <p class="booking-confirm-subtitle">Confira os dados antes de continuar para o pagamento.</p>
+
+                                    <div class="booking-confirm-details">
+                                        <div><span>Horário inicial</span><strong id="confirm-horario-inicio">—</strong></div>
+                                        <div><span>Horário final</span><strong id="confirm-horario-fim">—</strong></div>
+                                        <div><span>Duração</span><strong id="confirm-duracao">—</strong></div>
+                                        <div><span>Valor</span><strong id="confirm-valor">R$ 0,00</strong></div>
+                                    </div>
+
+                                    <div class="booking-confirm-actions">
+                                        <button type="button" class="btn-back booking-confirm-cancel" onclick="fecharConfirmacaoFinal()">
+                                            <i class="bi bi-arrow-left"></i>
+                                            Voltar e alterar
+                                        </button>
+                                        <button type="button" class="btn-main" id="btn-confirmar-agendamento" onclick="confirmarAgendamentoFinal()">
+                                            <i class="bi bi-check-circle"></i>
+                                            Sim, confirmar horário
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="soft-panel" id="timer-panel" style="display:none; margin-top: 14px; background: linear-gradient(135deg, #fff5f5, #fff0f0); border-color: #fecaca;">
+                                <div class="slot-chip" style="width:100%; justify-content: space-between; background: transparent; border: none;">
+                                    <span style="color:#991b1b;"><i class="bi bi-hourglass-split"></i> Horário reservado temporariamente</span>
+                                    <span id="timer" style="color:#c0392b; font-weight:900; font-size: 1.1rem;">10:00</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1579,9 +2250,9 @@ span.flatpickr-weekday {
                     </div>
 
                     <div class="actions-wrap">
-                        <button type="submit" class="btn-main">
-                            <i class="bi bi-check2-circle"></i>
-                            <span>Confirmar Agendamento</span>
+                        <button type="button" class="btn-main" id="btn-pagar" disabled onclick="confirmarIntervalo()">
+                            <i class="bi bi-credit-card"></i>
+                            <span>Ir para pagamento</span>
                         </button>
 
                         <a href="{% url 'escolher_servico' tenant_slug=tenant_slug %}" class="btn-back">
@@ -1594,7 +2265,7 @@ span.flatpickr-weekday {
                         Ao confirmar, o sistema registra a reserva conforme a disponibilidade exibida
                         para a data escolhida. <strong>Interface otimizada para uma experiência mais profissional.</strong>
                     </p>
-                </form>
+                </div>
             </div>
         </section>
     </div>
@@ -1605,12 +2276,583 @@ span.flatpickr-weekday {
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
 
+
+
 <script>
+
+const TODOS_HORARIOS = {{ horarios_json|safe }};
+const OCUPADOS = {{ horarios_ocupados_json|safe }};
+const tenantSlug = "{{ tenant_slug }}";
+const csrfToken = "{{ csrf_token }}";
+
+let pedidoId = null;
+let expiraEm = null;
+
+const picker = document.getElementById('time-range-picker');
+const precoHora = parseFloat(picker.dataset.precoHora);
+
+const inputInicio = document.getElementById('horario-inicio');
+const inputFim = document.getElementById('horario-fim');
+
+const wheelInicio = document.getElementById('wheel-inicio');
+const wheelFim = document.getElementById('wheel-fim');
+const wheelInicioList = document.getElementById('wheel-inicio-list');
+const wheelFimList = document.getElementById('wheel-fim-list');
+
+const wheelInicioStatus = document.getElementById('wheel-inicio-status');
+const wheelFimStatus = document.getElementById('wheel-fim-status');
+
+const WHEEL_COPIES = 1;
+const WHEEL_CENTER_COPY = 0;
+const WHEEL_ITEM_HEIGHT = 58;
+
+const wheelState = {
+    inicio: {
+        wheel: wheelInicio,
+        list: wheelInicioList,
+        input: inputInicio,
+        status: wheelInicioStatus,
+        values: [],
+        currentIndex: 0,
+        copySize: 0,
+        suppress: false,
+        timer: null
+    },
+    fim: {
+        wheel: wheelFim,
+        list: wheelFimList,
+        input: inputFim,
+        status: wheelFimStatus,
+        values: [],
+        currentIndex: 0,
+        copySize: 0,
+        suppress: false,
+        timer: null
+    }
+};
+
+function minutosDoHorario(h) {
+    if (h === '00:00') return 24 * 60;
+    const [hh, mm] = h.split(':').map(Number);
+    return hh * 60 + mm;
+}
+
+function minutosParaLabel(m) {
+    if (m >= 24 * 60) return '00:00';
+    const hh = String(Math.floor(m / 60)).padStart(2, '0');
+    const mm = String(m % 60).padStart(2, '0');
+    return `${hh}:${mm}`;
+}
+
+/*
+ * Retorna somente horários que podem ser escolhidos.
+ * Horários ocupados continuam representados visualmente no fluxo
+ * de dados, mas não entram no carrossel selecionável.
+ */
+function horariosIniciaisDisponiveis() {
+    return TODOS_HORARIOS.filter(h => {
+        if (h === '00:00') return false;
+        return !OCUPADOS.includes(h);
+    });
+}
+
+function horariosFinaisDisponiveis(horarioInicio) {
+    if (!horarioInicio) return [];
+
+    const inicioMin = minutosDoHorario(horarioInicio);
+    const opcoes = [];
+
+    for (const h of TODOS_HORARIOS) {
+        const hMin = minutosDoHorario(h);
+
+        if (hMin <= inicioMin) continue;
+
+        let temConflito = false;
+
+        for (let m = inicioMin; m < hMin; m += 30) {
+            if (OCUPADOS.includes(minutosParaLabel(m))) {
+                temConflito = true;
+                break;
+            }
+        }
+
+        if (temConflito) break;
+
+        opcoes.push(h);
+    }
+
+    return opcoes;
+}
+
+function criarItemWheel(state, value, index) {
+    const item = document.createElement('div');
+    item.className = 'time-wheel-item';
+    item.dataset.value = value;
+    item.dataset.index = index;
+    item.dataset.copyIndex = Math.floor(index / state.copySize);
+
+    const inner = document.createElement('div');
+    inner.className = 'time-wheel-item-inner';
+    inner.textContent = value;
+
+    item.appendChild(inner);
+    state.list.appendChild(item);
+}
+
+function renderWheel(state, values, preferredValue = null) {
+    clearTimeout(state.timer);
+
+    state.values = [...values];
+    state.list.innerHTML = '';
+
+    if (!state.values.length) {
+        state.wheel.classList.add('time-wheel-disabled');
+        state.input.value = '';
+        state.input.disabled = true;
+        state.status.textContent = preferredValue
+            ? 'Nenhum horário final disponível'
+            : 'Nenhum horário disponível';
+        state.status.classList.add('is-warning');
+        updateWheelTransforms(state);
+        return;
+    }
+
+    state.wheel.classList.remove('time-wheel-disabled');
+    state.input.disabled = false;
+    state.status.classList.remove('is-warning');
+
+    state.copySize = state.values.length;
+
+    for (let copy = 0; copy < WHEEL_COPIES; copy++) {
+        state.values.forEach((value, index) => {
+            criarItemWheel(state, value, copy * state.copySize + index);
+        });
+    }
+
+    const targetIndex = preferredValue && state.values.includes(preferredValue)
+        ? state.values.indexOf(preferredValue)
+        : 0;
+
+    state.currentIndex = WHEEL_CENTER_COPY * state.copySize + targetIndex;
+
+    state.suppress = true;
+
+    requestAnimationFrame(() => {
+        state.wheel.scrollTop = state.currentIndex * WHEEL_ITEM_HEIGHT;
+        state.suppress = false;
+        updateWheelSelection(state, false);
+    });
+}
+
+function getWheelItems(state) {
+    return [...state.list.querySelectorAll('.time-wheel-item')];
+}
+
+function getCenteredIndex(state) {
+    const center = state.wheel.scrollTop + state.wheel.clientHeight / 2;
+
+    let closestIndex = 0;
+    let closestDistance = Infinity;
+
+    getWheelItems(state).forEach((item, index) => {
+        const itemCenter = item.offsetTop + item.offsetHeight / 2;
+        const distance = Math.abs(itemCenter - center);
+
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+        }
+    });
+
+    return closestIndex;
+}
+
+function normalizeWheelPosition(state) {
+    return;
+}
+
+function updateWheelTransforms(state, updateValue = true) {
+    const items = getWheelItems(state);
+    if (!items.length) return;
+
+    const center = state.wheel.scrollTop + state.wheel.clientHeight / 2;
+
+    let closest = null;
+    let closestDistance = Infinity;
+
+    items.forEach((item, index) => {
+        const itemCenter = item.offsetTop + item.offsetHeight / 2;
+        const distance = itemCenter - center;
+        const normalized = Math.min(Math.abs(distance) / WHEEL_ITEM_HEIGHT, 3);
+
+        const scale = Math.max(0.72, 1 - normalized * 0.09);
+        const opacity = Math.max(0.20, 1 - normalized * 0.25);
+        const rotateX = Math.max(-48, Math.min(48, distance * -0.11));
+        const translateZ = Math.max(-100, 40 - normalized * 45);
+
+        item.style.transform =
+            `perspective(700px) rotateX(${rotateX}deg) translateZ(${translateZ}px) scale(${scale})`;
+        item.style.opacity = opacity;
+        item.style.filter = `blur(${Math.max(0, normalized - 1.2) * 0.8}px)`;
+
+        const d = Math.abs(distance);
+        if (d < closestDistance) {
+            closestDistance = d;
+            closest = { item, index };
+        }
+
+        item.classList.toggle('is-selected', false);
+    });
+
+    if (!closest) return;
+
+    closest.item.classList.add('is-selected');
+
+    if (updateValue) {
+        const value = closest.item.dataset.value;
+
+        if (state.input.value !== value) {
+            state.input.value = value;
+
+            if (state === wheelState.inicio) {
+                onInicioChanged(value);
+            } else if (horarioInicioConfirmado && !agendamentoFinalConfirmado) {
+                atualizarResumo();
+            }
+        }
+
+        state.currentIndex = closest.index;
+    }
+}
+
+function updateWheelSelection(state, triggerChange = true) {
+    normalizeWheelPosition(state);
+    updateWheelTransforms(state, triggerChange);
+}
+
+function snapWheel(state) {
+    if (!state.values.length || state.suppress) return;
+
+    // O encaixe (snap) já é feito nativamente pelo CSS (scroll-snap-type).
+    // Aqui só confirmamos o valor final, sem forçar scrollTo — evita
+    // o JS "brigar" com o snap nativo do navegador.
+    updateWheelTransforms(state, true);
+}
+
+function setupWheel(state) {
+    state.wheel.addEventListener('scroll', () => {
+        updateWheelTransforms(state, true);
+
+        clearTimeout(state.timer);
+        state.timer = setTimeout(() => {
+            snapWheel(state);
+        }, 90);
+    }, { passive: true });
+
+    state.wheel.addEventListener('wheel', event => {
+        if (!state.values.length || state.wheel.classList.contains('is-locked')) return;
+        event.preventDefault();
+
+        const direction = Math.sign(event.deltaY);
+        if (direction === 0) return;
+
+        state.wheel.scrollTo({
+            top: state.wheel.scrollTop + direction * WHEEL_ITEM_HEIGHT,
+            behavior: 'smooth'
+        });
+    }, { passive: false });
+
+    state.wheel.addEventListener('click', event => {
+        const item = event.target.closest('.time-wheel-item');
+        if (!item || !state.values.length) return;
+
+        state.wheel.scrollTo({
+            top: item.offsetTop,
+            behavior: 'smooth'
+        });
+    });
+
+    state.wheel.addEventListener('keydown', event => {
+        if (!state.values.length) return;
+
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+
+            const direction = event.key === 'ArrowDown' ? 1 : -1;
+            state.wheel.scrollTop += direction * WHEEL_ITEM_HEIGHT;
+        }
+    });
+}
+
+let horarioInicioConfirmado = false;
+let agendamentoFinalConfirmado = false;
+
+function setWheelEnabled(state, enabled) {
+    state.wheel.classList.toggle('is-locked', !enabled);
+    state.wheel.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    state.wheel.tabIndex = enabled ? 0 : -1;
+}
+
+function popularInicio() {
+    renderWheel(wheelState.inicio, horariosIniciaisDisponiveis());
+    inputInicio.value = '';
+    inputFim.value = '';
+
+    horarioInicioConfirmado = false;
+    agendamentoFinalConfirmado = false;
+
+    setWheelEnabled(wheelState.inicio, true);
+    setWheelEnabled(wheelState.fim, false);
+
+    document.getElementById('btn-confirmar-inicio').disabled = true;
+    document.getElementById('btn-confirmar-inicio').classList.remove('is-confirmed');
+    document.getElementById('btn-confirmar-inicio').innerHTML =
+        '<i class="bi bi-check-circle"></i> Confirmar horário inicial';
+
+    document.getElementById('btn-confirmar-fim').disabled = true;
+    document.getElementById('btn-pagar').disabled = true;
+
+    wheelInicioStatus.textContent = 'Deslize para escolher';
+    wheelInicioStatus.classList.remove('is-ready', 'is-warning');
+    wheelFimStatus.textContent = 'Confirme primeiro o horário inicial';
+    wheelFimStatus.classList.remove('is-ready');
+
+    document.getElementById('resumo-reserva').style.display = 'none';
+    window._horarioInicioAtual = null;
+    window._horarioFimAtual = null;
+}
+
+function popularFim(horarioInicio) {
+    const opcoes = horariosFinaisDisponiveis(horarioInicio);
+    renderWheel(wheelState.fim, opcoes);
+
+    if (!horarioInicio || !horarioInicioConfirmado) {
+        setWheelEnabled(wheelState.fim, false);
+        wheelFimStatus.textContent = 'Confirme primeiro o horário inicial';
+        wheelFimStatus.classList.remove('is-ready');
+        return;
+    }
+
+    setWheelEnabled(wheelState.fim, true);
+
+    if (opcoes.length) {
+        wheelFimStatus.textContent = 'Deslize para escolher o horário final';
+        wheelFimStatus.classList.add('is-ready');
+    } else {
+        wheelFimStatus.textContent = 'Nenhum horário final disponível';
+        wheelFimStatus.classList.add('is-warning');
+    }
+}
+
+function onInicioChanged(horarioInicio) {
+    // Durante a escolha do início, NÃO mexe no wheel final.
+    // O final só é carregado depois que o início for confirmado.
+    if (horarioInicioConfirmado) return;
+
+    inputFim.value = '';
+    agendamentoFinalConfirmado = false;
+    document.getElementById('btn-confirmar-fim').disabled = true;
+    document.getElementById('btn-pagar').disabled = true;
+
+    wheelInicioStatus.textContent = horarioInicio
+        ? `Selecionado: ${horarioInicio}`
+        : 'Deslize para escolher';
+    wheelInicioStatus.classList.toggle('is-ready', !!horarioInicio);
+
+    document.getElementById('btn-confirmar-inicio').disabled = !horarioInicio;
+
+    document.getElementById('resumo-reserva').style.display = 'none';
+    window._horarioInicioAtual = horarioInicio || null;
+    window._horarioFimAtual = null;
+}
+
+function confirmarHorarioInicio() {
+    const inicio = inputInicio.value;
+    if (!inicio) return;
+
+    horarioInicioConfirmado = true;
+    agendamentoFinalConfirmado = false;
+    inputFim.value = '';
+
+    setWheelEnabled(wheelState.inicio, false);
+
+    const btn = document.getElementById('btn-confirmar-inicio');
+    btn.disabled = true;
+    btn.classList.add('is-confirmed');
+    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Horário inicial confirmado';
+
+    wheelInicioStatus.textContent = `Horário inicial: ${inicio}`;
+    wheelInicioStatus.classList.add('is-ready');
+
+    popularFim(inicio);
+
+    window._horarioInicioAtual = inicio;
+    window._horarioFimAtual = null;
+    atualizarResumo();
+}
+
+function atualizarResumo() {
+    const ini = inputInicio.value;
+    const fim = inputFim.value;
+    const resumo = document.getElementById('resumo-reserva');
+
+    if (!ini || !fim) {
+        resumo.style.display = 'none';
+        document.getElementById('btn-pagar').disabled = true;
+        window._horarioInicioAtual = ini || null;
+        window._horarioFimAtual = fim || null;
+        return;
+    }
+
+    const duracaoMin = minutosDoHorario(fim) - minutosDoHorario(ini);
+    const horas = duracaoMin / 60;
+    const total = horas * precoHora;
+
+    const horasInt = Math.floor(horas);
+    const minRestante = duracaoMin % 60;
+    let duracaoTexto = `${horasInt}h`;
+
+    if (minRestante > 0) {
+        duracaoTexto += `${minRestante}min`;
+    }
+
+    document.getElementById('horario-resumo').textContent = `${ini} → ${fim}`;
+    document.getElementById('duracao-texto').textContent = duracaoTexto;
+    document.getElementById('valor-total-exibicao').textContent =
+        total.toFixed(2).replace('.', ',');
+
+    resumo.style.display = 'flex';
+    document.getElementById('btn-confirmar-fim').disabled = false;
+
+    // O pagamento só fica disponível depois da confirmação final.
+    document.getElementById('btn-pagar').disabled = !agendamentoFinalConfirmado;
+
+    window._horarioInicioAtual = ini;
+    window._horarioFimAtual = fim;
+}
+
+function abrirConfirmacaoFinal() {
+    const ini = inputInicio.value;
+    const fim = inputFim.value;
+
+    if (!horarioInicioConfirmado || !ini || !fim) return;
+
+    const duracaoMin = minutosDoHorario(fim) - minutosDoHorario(ini);
+    const horas = duracaoMin / 60;
+    const total = horas * precoHora;
+    const horasInt = Math.floor(horas);
+    const minRestante = duracaoMin % 60;
+    let duracaoTexto = `${horasInt}h`;
+    if (minRestante > 0) duracaoTexto += `${minRestante}min`;
+
+    document.getElementById('confirm-horario-inicio').textContent = ini;
+    document.getElementById('confirm-horario-fim').textContent = fim;
+    document.getElementById('confirm-duracao').textContent = duracaoTexto;
+    document.getElementById('confirm-valor').textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+
+    const overlay = document.getElementById('booking-confirm-overlay');
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharConfirmacaoFinal() {
+    const overlay = document.getElementById('booking-confirm-overlay');
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+}
+
+function confirmarAgendamentoFinal() {
+    const ini = inputInicio.value;
+    const fim = inputFim.value;
+    if (!ini || !fim) return;
+
+    agendamentoFinalConfirmado = true;
+    window._horarioInicioAtual = ini;
+    window._horarioFimAtual = fim;
+
+    setWheelEnabled(wheelState.fim, false);
+    document.getElementById('btn-confirmar-fim').disabled = true;
+    document.getElementById('btn-confirmar-fim').classList.add('is-confirmed');
+    document.getElementById('btn-confirmar-fim').innerHTML =
+        '<i class="bi bi-check-circle-fill"></i> Horário final confirmado';
+
+    wheelFimStatus.textContent = `Agendamento: ${ini} → ${fim}`;
+    wheelFimStatus.classList.add('is-ready');
+
+    document.getElementById('btn-pagar').disabled = false;
+    fecharConfirmacaoFinal();
+}
+
+setupWheel(wheelState.inicio);
+setupWheel(wheelState.fim);
+popularInicio();
+
+document.getElementById('booking-confirm-overlay').addEventListener('click', event => {
+    if (event.target.id === 'booking-confirm-overlay') {
+        fecharConfirmacaoFinal();
+    }
+});
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+        fecharConfirmacaoFinal();
+    }
+});
+
+function iniciarContagem() {
+    clearInterval(window._timerInterval);
+    window._timerInterval = setInterval(() => {
+        const restante = Math.max(0, Math.floor((expiraEm - new Date()) / 1000));
+        const min = Math.floor(restante / 60);
+        const seg = restante % 60;
+        document.getElementById('timer').textContent = `${min}:${String(seg).padStart(2,'0')}`;
+
+        if (restante <= 0) {
+            clearInterval(window._timerInterval);
+            alert('Tempo esgotado! O horário foi liberado.');
+            location.reload();
+        }
+    }, 1000);
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function confirmarIntervalo() {
+    const btn = document.getElementById('btn-pagar');
+    btn.disabled = true;
+
+    fetch(`/${tenantSlug}/bloquear-intervalo/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCookie('csrftoken') || csrfToken},
+        body: `servico_id=${picker.dataset.servicoId}&data=${picker.dataset.data}` +
+              `&horario_inicio=${window._horarioInicioAtual}&horario_fim=${window._horarioFimAtual}` +
+              `&pedido_id=${pedidoId || ''}`,
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (!res.ok) {
+            alert(res.erro);
+            btn.disabled = false;
+            location.reload();
+            return;
+        }
+        pedidoId = res.pedido_id;
+        expiraEm = new Date(res.expira_em);
+        document.getElementById('timer-panel').style.display = 'block';
+        iniciarContagem();
+        window.location.href = `/${tenantSlug}/pagamento/${pedidoId}/`;
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const campoData = document.getElementById("data");
     const formData = document.getElementById("form-data");
-    const horarioInputs = document.querySelectorAll('input[name="horario"]');
-    const submitButton = document.querySelector(".btn-main");
 
     if (campoData) {
         flatpickr(campoData, {
@@ -1620,42 +2862,23 @@ document.addEventListener("DOMContentLoaded", function () {
             minDate: "today",
             locale: flatpickr.l10ns.pt,
             clickOpens: true,
-            disableMobile: true
         });
 
         campoData.addEventListener("input", function (e) {
             let valor = e.target.value.replace(/\D/g, "");
-
-            if (valor.length > 8) {
-                valor = valor.slice(0, 8);
-            }
-
+            if (valor.length > 8) valor = valor.slice(0, 8);
             if (valor.length > 4) {
                 valor = valor.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
             } else if (valor.length > 2) {
                 valor = valor.replace(/(\d{2})(\d{1,2})/, "$1/$2");
             }
-
             e.target.value = valor;
         });
 
         campoData.addEventListener("change", function () {
-            if (formData) {
-                formData.submit();
-            }
+            if (formData) formData.submit();
         });
     }
-
-    horarioInputs.forEach(function (input) {
-        input.addEventListener("change", function () {
-            if (submitButton) {
-                submitButton.classList.add("pulse-once");
-                setTimeout(function () {
-                    submitButton.classList.remove("pulse-once");
-                }, 450);
-            }
-        });
-    });
 });
 </script>
 {% endblock %}

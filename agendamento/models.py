@@ -350,3 +350,41 @@ class HorarioBloqueado(models.Model):
 
     class Meta:
         unique_together = ['tenant', 'data', 'horario']  # tenant na unique
+
+
+class PedidoReserva(models.Model):
+    STATUS_CHOICES = [
+        ('bloqueado', 'Bloqueado (aguardando escolha de pagamento)'),
+        ('aguardando_pagamento', 'Aguardando Pagamento'),
+        ('confirmado', 'Confirmado'),
+        ('expirado', 'Expirado'),
+        ('cancelado', 'Cancelado'),
+    ]
+
+    tenant    = models.ForeignKey(Tenant, on_delete=models.CASCADE)
+    cliente   = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    status    = models.CharField(max_length=20, choices=STATUS_CHOICES, default='bloqueado')
+    valor_total = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    expira_em = models.DateTimeField()  # criado_em + 10min
+
+    def esta_expirado(self):
+        return timezone.now() > self.expira_em
+
+
+class SlotReservado(models.Model):
+    """Cada linha = um bloco de 30min de UMA quadra. Um pedido pode ter várias."""
+    pedido  = models.ForeignKey(PedidoReserva, on_delete=models.CASCADE, related_name='slots')
+    tenant  = models.ForeignKey(Tenant, on_delete=models.CASCADE)
+    servico = models.ForeignKey('Servico', on_delete=models.CASCADE)  # a quadra
+    data    = models.DateField()
+    horario = models.TimeField()
+    preco   = models.DecimalField(max_digits=8, decimal_places=2)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tenant', 'servico', 'data', 'horario'],
+                name='unique_slot_tenant_servico_data_horario'
+            )
+        ]
