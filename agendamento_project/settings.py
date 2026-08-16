@@ -162,3 +162,5 @@ STATIC_URL = 'static/'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MP_ACCESS_TOKEN = os.environ.get('MP_ACCESS_TOKEN')

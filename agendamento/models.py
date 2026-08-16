@@ -198,6 +198,7 @@ class Agendamento(models.Model):
         blank=True,
     )
     servico = models.ForeignKey('Servico', on_delete=models.CASCADE, null=True, blank=True)
+    horario_fim = models.TimeField(null=True, blank=True)
     data = models.DateField()
     horario = models.TimeField()
     descricao = models.CharField(max_length=100, blank=True)
@@ -388,3 +389,21 @@ class SlotReservado(models.Model):
                 name='unique_slot_tenant_servico_data_horario'
             )
         ]
+
+
+
+class Pagamento(models.Model):
+    STATUS_CHOICES = [
+        ('pendente', 'Aguardando pagamento'),
+        ('aprovado', 'Aprovado'),
+        ('expirado', 'Expirado'),
+        ('cancelado', 'Cancelado'),
+    ]
+
+    pedido = models.OneToOneField('PedidoReserva', on_delete=models.CASCADE, related_name='pagamento')
+    mp_payment_id = models.CharField(max_length=50, blank=True, default='')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pendente')
+    valor = models.DecimalField(max_digits=8, decimal_places=2)
+    qr_code = models.TextField(blank=True, default='')
+    qr_code_base64 = models.TextField(blank=True, default='')
+    criado_em = models.DateTimeField(auto_now_add=True)

@@ -603,7 +603,11 @@
 
                                                 <span>
                                                     <i class="bi bi-clock"></i>
+                                                    {% if agendamento.horario_fim %}
+                                                    {{ agendamento.horario|time:"H:i" }} às {{ agendamento.horario_fim|time:"H:i" }}
+                                                {% else %}
                                                     {{ agendamento.horario|time:"H:i" }}
+                                                {% endif %}
                                                 </span>
 
                                                 {% if agendamento.servico and agendamento.servico.preco %}

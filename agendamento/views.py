@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import Cliente, Agendamento, Servico, NotificacaoExclusao, ConfiguracaoSalao, HorarioFuncionamento, PeriodoBloqueio, PedidoReserva, SlotReservado
+from .models import Cliente, Agendamento, Servico, NotificacaoExclusao, ConfiguracaoSalao, HorarioFuncionamento, PeriodoBloqueio, PedidoReserva, SlotReservado, Pagamento
 from .forms import AgendamentoForm, IdentificarUsuarioForm , RedefinirSenhaForm, AgendamentoManualForm, ConfiguracaoSalaoForm
 from datetime import datetime, timedelta, date
 from django.db import IntegrityError
@@ -1513,7 +1513,9 @@ def bloquear_slot(request):
     pedido_id = request.POST.get('pedido_id')  # None na primeira vez
 
     servico = Servico.objects.get(id=servico_id, tenant=request.tenant)
-    cliente = request.user.cliente
+    cliente, _ = Cliente.objects.get_or_create(
+    id_usuario=request.user, defaults={'tenant': request.tenant}
+)
 
     # Limpa lixo expirado antes de tentar (mantém banco saudável)
     PedidoReserva.objects.filter(
@@ -1560,7 +1562,10 @@ def bloquear_slot(request):
 
 def desbloquear_slot(request):
     slot_id = request.POST.get('slot_id')
-    slot = SlotReservado.objects.get(id=slot_id, pedido__cliente=request.user.cliente)
+    cliente, _ = Cliente.objects.get_or_create(
+        id_usuario=request.user, defaults={'tenant': request.tenant}
+    )
+    slot = SlotReservado.objects.get(id=slot_id, pedido__cliente=cliente)
     pedido = slot.pedido
     pedido.valor_total -= slot.preco
     slot.delete()
@@ -1574,8 +1579,7 @@ def desbloquear_slot(request):
 
 
 
-
-def bloquear_intervalo(request):
+def bloquear_intervalo(request, tenant_slug):
     servico_id = request.POST.get('servico_id')
     data = request.POST.get('data')
     horario_inicio = request.POST.get('horario_inicio')
@@ -1608,18 +1612,25 @@ def bloquear_intervalo(request):
         with transaction.atomic():
             if pedido_id:
                 pedido = PedidoReserva.objects.get(id=pedido_id, cliente=cliente, status='bloqueado')
+                # Reseta o valor e apaga slots antigos antes de recriar
+                pedido.slots.all().delete()
+                pedido.valor_total = Decimal('0')
             else:
                 pedido = PedidoReserva.objects.create(
                     tenant=request.tenant, cliente=cliente, status='bloqueado',
                     expira_em=timezone.now() + timedelta(minutes=10),
                 )
 
+            # Preço por bloco de 30min baseado no preço/duração cadastrados
+            blocos_por_duracao = servico.duracao_minutos / 30
+            preco_por_bloco = Decimal(str(servico.preco)) / Decimal(str(blocos_por_duracao))
+
             for horario_str in blocos:
                 SlotReservado.objects.create(
                     pedido=pedido, tenant=request.tenant, servico=servico,
-                    data=data_convertida, horario=horario_str, preco=servico.preco,
+                    data=data_convertida, horario=horario_str, preco=preco_por_bloco,
                 )
-                pedido.valor_total += servico.preco
+                pedido.valor_total += preco_por_bloco
 
             pedido.save()
 
@@ -1634,18 +1645,21 @@ def bloquear_intervalo(request):
     })
 
 def disponibilidade_quadra(request, servico_id, data):
-    # Limpa expirados antes de responder
     PedidoReserva.objects.filter(
         status__in=['bloqueado', 'aguardando_pagamento'],
         expira_em__lt=timezone.now(),
     ).delete()
 
+    cliente, _ = Cliente.objects.get_or_create(
+        id_usuario=request.user, defaults={'tenant': request.tenant}
+    )
+
     bloqueados = SlotReservado.objects.filter(
         servico_id=servico_id, data=data,
-    ).exclude(pedido__cliente=request.user.cliente).values_list('horario', flat=True)
+    ).exclude(pedido__cliente=cliente).values_list('horario', flat=True)
 
     meus_bloqueios = SlotReservado.objects.filter(
-        servico_id=servico_id, data=data, pedido__cliente=request.user.cliente,
+        servico_id=servico_id, data=data, pedido__cliente=cliente,
     ).values_list('horario', flat=True)
 
     confirmados = Agendamento.objects.filter(
@@ -1661,14 +1675,137 @@ def disponibilidade_quadra(request, servico_id, data):
 
 
 
-def finalizar_pagamento(request, pedido_id):
+import mercadopago
+from django.conf import settings
+
+import mercadopago
+from django.conf import settings
+
+def finalizar_pagamento(request, pedido_id, tenant_slug=None):
     cliente, _ = Cliente.objects.get_or_create(
         id_usuario=request.user, defaults={'tenant': request.tenant}
     )
-    pedido = PedidoReserva.objects.get(id=pedido_id, cliente=cliente, status='bloqueado')
-    pedido.status = 'aguardando_pagamento'
-    pedido.expira_em = timezone.now() + timedelta(minutes=15)
-    pedido.save()
+    pedido = get_object_or_404(PedidoReserva, id=pedido_id, cliente=cliente, tenant=request.tenant)
 
-    return render(request, 'clients/aguardando_pagamento.html', {'pedido': pedido})
+    # Debug temporário — apague depois de confirmar
+    print(f"=== PEDIDO {pedido.id} | valor={pedido.valor_total} | slots={pedido.slots.count()} ===")
+
+    # Bloqueia pedido zerado ANTES de chamar o Mercado Pago
+    if pedido.valor_total <= 0:
+        return JsonResponse({"erro": "Pedido sem valor. Faça uma nova reserva."}, status=400)
+
+    # Atualiza status
+    if pedido.status == 'bloqueado':
+        pedido.status = 'aguardando_pagamento'
+        pedido.save()
+
+    # Reusa pagamento existente
+    pagamento = Pagamento.objects.filter(pedido=pedido).first()
+
+    if pagamento and pagamento.status == 'aprovado':
+        return render(request, 'clients/pagamento.html', {
+            'pedido': pedido,
+            'pagamento': pagamento,
+            'tenant_slug': request.tenant.slug,
+            'ja_aprovado': True,
+        })
+
+    if not pagamento:
+        primeiro_slot = pedido.slots.first()
+        data_reserva = primeiro_slot.data if primeiro_slot else 'sem data'
+
+        sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
+
+        payment_data = {
+            "transaction_amount": float(pedido.valor_total),
+            "description": f"Reserva {request.tenant.nome} - {data_reserva}",
+            "payment_method_id": "pix",
+            "payer": {
+                "email": request.user.email or f"{request.user.username}@arenabestplay.com.br",
+                "first_name": cliente.id_usuario.username.split('__')[0],
+            },
+        }
+
+        resultado = sdk.payment().create(payment_data)
+        resposta = resultado.get("response", {})
+
+        print(f"=== MP RESPOSTA: {resposta} ===")
+
+        if "id" not in resposta:
+            return JsonResponse({
+                "erro": "Mercado Pago não retornou o ID do pagamento.",
+                "resposta": resposta,
+            }, status=400)
+
+        dados_pix = resposta.get("point_of_interaction", {}).get("transaction_data", {})
+
+        pagamento = Pagamento.objects.create(
+            pedido=pedido,
+            mp_payment_id=str(resposta["id"]),
+            valor=pedido.valor_total,
+            qr_code=dados_pix.get("qr_code", ""),
+            qr_code_base64=dados_pix.get("qr_code_base64", ""),
+        )
+
+    return render(request, 'clients/pagamento.html', {
+        'pedido': pedido,
+        'pagamento': pagamento,
+        'tenant_slug': request.tenant.slug,
+    })
+
+
+def verificar_status_pagamento(request, tenant_slug=None, pedido_id=None):
+    cliente, _ = Cliente.objects.get_or_create(
+        id_usuario=request.user, defaults={'tenant': request.tenant}
+    )
+    pedido = get_object_or_404(PedidoReserva, id=pedido_id, cliente=cliente, tenant=request.tenant)
+    pagamento = get_object_or_404(Pagamento, pedido=pedido)
+
+    if pagamento.status == 'aprovado':
+        return JsonResponse({'status': 'aprovado'})
+
+    if pedido.esta_expirado():
+        pagamento.status = 'expirado'
+        pagamento.save()
+        pedido.status = 'expirado'
+        pedido.save()
+        return JsonResponse({'status': 'expirado'})
+
+    sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
+    resultado = sdk.payment().get(pagamento.mp_payment_id)
+    status_mp = resultado["response"].get("status")
+
+    if status_mp == "approved":
+        pagamento.status = 'aprovado'
+        pagamento.save()
+        pedido.status = 'confirmado'
+        pedido.save()
+
+        # Agrupa slots por quadra (servico) — cria 1 agendamento por quadra
+        from itertools import groupby
+        slots_ordenados = pedido.slots.all().order_by('servico', 'horario')
+
+        for servico_id, slots_do_servico in groupby(slots_ordenados, key=lambda s: s.servico_id):
+            slots_lista = list(slots_do_servico)
+            slot_inicio = slots_lista[0]
+            slot_fim = slots_lista[-1]
+
+            # Calcula horário de fim (último slot + 30min)
+            from datetime import datetime, timedelta
+            horario_fim_dt = datetime.combine(slot_fim.data, slot_fim.horario) + timedelta(minutes=30)
+            horario_fim = horario_fim_dt.time()
+
+            Agendamento.objects.create(
+                tenant=slot_inicio.tenant,
+                cliente=pedido.cliente,
+                servico=slot_inicio.servico,
+                data=slot_inicio.data,
+                horario=slot_inicio.horario,
+                horario_fim=horario_fim,
+                status='pendente',
+                origem='cliente',
+            )
+
+        pedido.slots.all().delete()
+        return JsonResponse({'status': 'aprovado'})
 # ─────────────────────────────────────────────────────────────────────────────
