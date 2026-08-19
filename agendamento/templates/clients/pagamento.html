@@ -225,7 +225,7 @@ body { margin:0; font-family:"Inter","Segoe UI",Arial,sans-serif; background:#f4
 
 {% block extra_js %}
 <script>
-const expiraEm = new Date("{{ pedido.expira_em.isoformat }}");
+const expiraEm = new Date("{{ pedido.expira_em|date:'c' }}");
 const tenantSlug = "{{ tenant_slug }}";
 const pedidoId = "{{ pedido.id }}";
 

@@ -16,6 +16,9 @@ import json as _json
 from .models import HorarioBloqueado
 from django.utils import timezone
 from decimal import Decimal
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import logging
 from .utils import (
     gerar_horarios,
     requer_horario_duplo,
@@ -24,6 +27,14 @@ from .utils import (
     is_horario_dentro_24h,
     TODOS_HORARIOS,
 )
+
+
+from agendamento.security import (
+    rate_limit, calcular_valor_pedido, validar_valor_pagamento,
+    pagamento_ja_processado, marcar_pagamento_processado,
+    validar_webhook_mercadopago, adquirir_lock_slot, liberar_lock_slot,)
+
+
 from django.contrib import messages
 from decimal import Decimal
 import calendar
@@ -1579,26 +1590,50 @@ def desbloquear_slot(request):
 
 
 
-def bloquear_intervalo(request, tenant_slug):
+logger = logging.getLogger('pagamentos')
+
+
+@login_required
+@rate_limit('bloquear_intervalo', limit=10, period_seconds=60)
+def bloquear_intervalo(request, tenant_slug=None):
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'erro': 'Método não permitido.'}, status=405)
+
     servico_id = request.POST.get('servico_id')
     data = request.POST.get('data')
     horario_inicio = request.POST.get('horario_inicio')
     horario_fim = request.POST.get('horario_fim')
     pedido_id = request.POST.get('pedido_id')
 
-    servico = Servico.objects.get(id=servico_id, tenant=request.tenant)
+    if not all([servico_id, data, horario_inicio, horario_fim]):
+        return JsonResponse({'ok': False, 'erro': 'Dados incompletos.'}, status=400)
+
+    # Verifica que o serviço pertence ao tenant atual (IDOR protection)
+    servico = get_object_or_404(Servico, id=servico_id, tenant=request.tenant, ativo=True)
     cliente, _ = Cliente.objects.get_or_create(
         id_usuario=request.user, defaults={'tenant': request.tenant}
     )
+
+    # Verifica que o cliente pertence ao tenant atual
+    if cliente.tenant != request.tenant:
+        logger.warning(f'Tentativa de acesso cross-tenant | user={request.user.id}')
+        return JsonResponse({'ok': False, 'erro': 'Acesso negado.'}, status=403)
+
     data_convertida = converter_data(data)
+    if not data_convertida:
+        return JsonResponse({'ok': False, 'erro': 'Data inválida.'}, status=400)
 
     PedidoReserva.objects.filter(
         status__in=['bloqueado', 'aguardando_pagamento'],
         expira_em__lt=timezone.now(),
     ).delete()
 
-    inicio_dt = datetime.strptime(horario_inicio, '%H:%M')
-    fim_dt = datetime.strptime(horario_fim, '%H:%M')
+    try:
+        inicio_dt = datetime.strptime(horario_inicio, '%H:%M')
+        fim_dt = datetime.strptime(horario_fim, '%H:%M')
+    except ValueError:
+        return JsonResponse({'ok': False, 'erro': 'Horário inválido.'}, status=400)
+
     if fim_dt <= inicio_dt:
         fim_dt += timedelta(days=1)
 
@@ -1608,20 +1643,39 @@ def bloquear_intervalo(request, tenant_slug):
         blocos.append(atual.strftime('%H:%M'))
         atual += timedelta(minutes=30)
 
+    if not blocos:
+        return JsonResponse({'ok': False, 'erro': 'Intervalo inválido.'}, status=400)
+
+    # Tenta adquirir locks para todos os blocos antes de qualquer escrita
+    locks_adquiridos = []
+    for horario_str in blocos:
+        if not adquirir_lock_slot(request.tenant.id, servico.id, data_convertida, horario_str):
+            # Libera locks já adquiridos
+            for h in locks_adquiridos:
+                liberar_lock_slot(request.tenant.id, servico.id, data_convertida, h)
+            return JsonResponse({'ok': False, 'erro': 'Um dos horários está sendo reservado agora. Tente novamente.'}, status=409)
+        locks_adquiridos.append(horario_str)
+
     try:
         with transaction.atomic():
             if pedido_id:
-                pedido = PedidoReserva.objects.get(id=pedido_id, cliente=cliente, status='bloqueado')
-                # Reseta o valor e apaga slots antigos antes de recriar
-                pedido.slots.all().delete()
-                pedido.valor_total = Decimal('0')
+                try:
+                    pedido = PedidoReserva.objects.select_for_update().get(
+                        id=pedido_id, cliente=cliente, tenant=request.tenant, status='bloqueado'
+                    )
+                    pedido.slots.all().delete()
+                    pedido.valor_total = Decimal('0')
+                except PedidoReserva.DoesNotExist:
+                    pedido = PedidoReserva.objects.create(
+                        tenant=request.tenant, cliente=cliente, status='bloqueado',
+                        expira_em=timezone.now() + timedelta(minutes=10),
+                    )
             else:
                 pedido = PedidoReserva.objects.create(
                     tenant=request.tenant, cliente=cliente, status='bloqueado',
                     expira_em=timezone.now() + timedelta(minutes=10),
                 )
 
-            # Preço por bloco de 30min baseado no preço/duração cadastrados
             blocos_por_duracao = servico.duracao_minutos / 30
             preco_por_bloco = Decimal(str(servico.preco)) / Decimal(str(blocos_por_duracao))
 
@@ -1635,7 +1689,13 @@ def bloquear_intervalo(request, tenant_slug):
             pedido.save()
 
     except IntegrityError:
-        return JsonResponse({'ok': False, 'erro': 'Um dos horários desse intervalo acabou de ser reservado por outra pessoa.'}, status=409)
+        return JsonResponse({'ok': False, 'erro': 'Um dos horários acabou de ser reservado por outra pessoa.'}, status=409)
+    finally:
+        # Sempre libera os locks
+        for h in locks_adquiridos:
+            liberar_lock_slot(request.tenant.id, servico.id, data_convertida, h)
+
+    logger.info(f'Intervalo bloqueado | pedido={pedido.id} | tenant={request.tenant.slug} | valor={pedido.valor_total}')
 
     return JsonResponse({
         'ok': True,
@@ -1643,6 +1703,7 @@ def bloquear_intervalo(request, tenant_slug):
         'expira_em': pedido.expira_em.isoformat(),
         'valor_total': str(pedido.valor_total),
     })
+
 
 def disponibilidade_quadra(request, servico_id, data):
     PedidoReserva.objects.filter(
@@ -1673,33 +1734,36 @@ def disponibilidade_quadra(request, servico_id, data):
 
 
 
-
-
 import mercadopago
 from django.conf import settings
 
-import mercadopago
-from django.conf import settings
-
+@login_required
 def finalizar_pagamento(request, pedido_id, tenant_slug=None):
     cliente, _ = Cliente.objects.get_or_create(
         id_usuario=request.user, defaults={'tenant': request.tenant}
     )
-    pedido = get_object_or_404(PedidoReserva, id=pedido_id, cliente=cliente, tenant=request.tenant)
 
-    # Debug temporário — apague depois de confirmar
-    print(f"=== PEDIDO {pedido.id} | valor={pedido.valor_total} | slots={pedido.slots.count()} ===")
+    # Garante ownership + tenant (IDOR protection)
+    pedido = get_object_or_404(
+        PedidoReserva, id=pedido_id, cliente=cliente, tenant=request.tenant
+    )
 
-    # Bloqueia pedido zerado ANTES de chamar o Mercado Pago
-    if pedido.valor_total <= 0:
-        return JsonResponse({"erro": "Pedido sem valor. Faça uma nova reserva."}, status=400)
+    # Recalcula o valor no backend — nunca confia no frontend
+    valor_real = calcular_valor_pedido(pedido)
 
-    # Atualiza status
+    if valor_real <= 0:
+        logger.warning(f'Pedido sem valor | pedido={pedido.id} | user={request.user.id}')
+        return JsonResponse({'erro': 'Pedido inválido. Faça uma nova reserva.'}, status=400)
+
+    # Atualiza valor_total com o calculado no backend (proteção contra manipulação)
+    if pedido.valor_total != valor_real:
+        pedido.valor_total = valor_real
+        pedido.save(update_fields=['valor_total'])
+
     if pedido.status == 'bloqueado':
         pedido.status = 'aguardando_pagamento'
-        pedido.save()
+        pedido.save(update_fields=['status'])
 
-    # Reusa pagamento existente
     pagamento = Pagamento.objects.filter(pedido=pedido).first()
 
     if pagamento and pagamento.status == 'aprovado':
@@ -1711,30 +1775,29 @@ def finalizar_pagamento(request, pedido_id, tenant_slug=None):
         })
 
     if not pagamento:
-        primeiro_slot = pedido.slots.first()
-        data_reserva = primeiro_slot.data if primeiro_slot else 'sem data'
-
         sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
 
         payment_data = {
-            "transaction_amount": float(pedido.valor_total),
-            "description": f"Reserva {request.tenant.nome} - {data_reserva}",
+            "transaction_amount": float(valor_real),
+            "description": f"Reserva {request.tenant.nome}",
             "payment_method_id": "pix",
             "payer": {
-                "email": request.user.email or f"{request.user.username}@arenabestplay.com.br",
+                "email": request.user.email or f"cliente_{request.user.id}@reserva.internal",
                 "first_name": cliente.id_usuario.username.split('__')[0],
+            },
+            "metadata": {
+                "pedido_id": pedido.id,
+                "tenant_slug": request.tenant.slug,
             },
         }
 
         resultado = sdk.payment().create(payment_data)
         resposta = resultado.get("response", {})
 
-        print(f"=== MP RESPOSTA: {resposta} ===")
-
         if "id" not in resposta:
+            logger.error(f'MP erro ao criar pagamento | pedido={pedido.id} | erro={resposta.get("message")}')
             return JsonResponse({
-                "erro": "Mercado Pago não retornou o ID do pagamento.",
-                "resposta": resposta,
+                "erro": "Não foi possível gerar o pagamento. Tente novamente.",
             }, status=400)
 
         dados_pix = resposta.get("point_of_interaction", {}).get("transaction_data", {})
@@ -1742,10 +1805,12 @@ def finalizar_pagamento(request, pedido_id, tenant_slug=None):
         pagamento = Pagamento.objects.create(
             pedido=pedido,
             mp_payment_id=str(resposta["id"]),
-            valor=pedido.valor_total,
+            valor=valor_real,
             qr_code=dados_pix.get("qr_code", ""),
             qr_code_base64=dados_pix.get("qr_code_base64", ""),
         )
+
+        logger.info(f'Pagamento criado | pedido={pedido.id} | mp_id={resposta["id"]} | valor={valor_real}')
 
     return render(request, 'clients/pagamento.html', {
         'pedido': pedido,
@@ -1754,10 +1819,13 @@ def finalizar_pagamento(request, pedido_id, tenant_slug=None):
     })
 
 
+@login_required
 def verificar_status_pagamento(request, tenant_slug=None, pedido_id=None):
     cliente, _ = Cliente.objects.get_or_create(
         id_usuario=request.user, defaults={'tenant': request.tenant}
     )
+
+    # Garante ownership + tenant
     pedido = get_object_or_404(PedidoReserva, id=pedido_id, cliente=cliente, tenant=request.tenant)
     pagamento = get_object_or_404(Pagamento, pedido=pedido)
 
@@ -1771,41 +1839,148 @@ def verificar_status_pagamento(request, tenant_slug=None, pedido_id=None):
         pedido.save()
         return JsonResponse({'status': 'expirado'})
 
+    # Consulta o status real no MP — nunca confia apenas no banco
     sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
     resultado = sdk.payment().get(pagamento.mp_payment_id)
-    status_mp = resultado["response"].get("status")
+    resposta = resultado.get("response", {})
+    status_mp = resposta.get("status")
 
     if status_mp == "approved":
+        # Valida o valor aprovado contra o calculado no backend
+        valor_mp = resposta.get("transaction_amount", 0)
+        if not validar_valor_pagamento(pedido, valor_mp):
+            logger.error(
+                f'Valor divergente | pedido={pedido.id} '
+                f'| esperado={calcular_valor_pedido(pedido)} | recebido={valor_mp}'
+            )
+            return JsonResponse({'status': 'pendente'})
+
+        # Idempotência: não processa duas vezes
+        if pagamento_ja_processado(pagamento.mp_payment_id):
+            return JsonResponse({'status': 'aprovado'})
+
+        with transaction.atomic():
+            pagamento.status = 'aprovado'
+            pagamento.save()
+            pedido.status = 'confirmado'
+            pedido.save()
+
+            slots_ordenados = pedido.slots.select_related('servico').order_by('servico', 'horario')
+            from itertools import groupby
+            for servico_id, slots_grupo in groupby(slots_ordenados, key=lambda s: s.servico_id):
+                slots_lista = list(slots_grupo)
+                slot_inicio = slots_lista[0]
+                slot_fim = slots_lista[-1]
+                horario_fim_dt = datetime.combine(slot_fim.data, slot_fim.horario) + timedelta(minutes=30)
+
+                Agendamento.objects.create(
+                    tenant=slot_inicio.tenant,
+                    cliente=pedido.cliente,
+                    servico=slot_inicio.servico,
+                    data=slot_inicio.data,
+                    horario=slot_inicio.horario,
+                    horario_fim=horario_fim_dt.time(),
+                    status='pendente',
+                    origem='cliente',
+                )
+
+            pedido.slots.all().delete()
+            marcar_pagamento_processado(pagamento.mp_payment_id)
+
+        logger.info(f'Pagamento aprovado | pedido={pedido.id} | mp_id={pagamento.mp_payment_id}')
+        return JsonResponse({'status': 'aprovado'})
+
+    if status_mp in ('rejected', 'cancelled'):
+        pagamento.status = 'cancelado'
+        pagamento.save()
+        logger.info(f'Pagamento recusado | pedido={pedido.id} | status_mp={status_mp}')
+        return JsonResponse({'status': 'recusado'})
+
+    return JsonResponse({'status': 'pendente'})
+
+
+@csrf_exempt
+@require_POST
+def webhook_mercadopago(request):
+    """
+    Webhook seguro: valida assinatura, idempotência e valor antes de confirmar.
+    """
+    if not validar_webhook_mercadopago(request):
+        return JsonResponse({'erro': 'Assinatura inválida.'}, status=401)
+
+    try:
+        dados = _json.loads(request.body)
+    except _json.JSONDecodeError:
+        return JsonResponse({'erro': 'JSON inválido.'}, status=400)
+
+    if dados.get('type') != 'payment':
+        return JsonResponse({'ok': True})
+
+    payment_id = str(dados.get('data', {}).get('id', ''))
+    if not payment_id:
+        return JsonResponse({'erro': 'payment_id ausente.'}, status=400)
+
+    # Idempotência — webhook duplicado não faz nada
+    if pagamento_ja_processado(payment_id):
+        logger.info(f'Webhook duplicado ignorado | mp_id={payment_id}')
+        return JsonResponse({'ok': True})
+
+    try:
+        pagamento = Pagamento.objects.select_related('pedido__tenant', 'pedido__cliente').get(
+            mp_payment_id=payment_id
+        )
+    except Pagamento.DoesNotExist:
+        logger.warning(f'Webhook: pagamento não encontrado | mp_id={payment_id}')
+        return JsonResponse({'ok': True})
+
+    if pagamento.status == 'aprovado':
+        return JsonResponse({'ok': True})
+
+    # Consulta o MP para confirmar (nunca confia só no webhook)
+    sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
+    resultado = sdk.payment().get(payment_id)
+    resposta = resultado.get("response", {})
+    status_mp = resposta.get("status")
+
+    if status_mp != "approved":
+        return JsonResponse({'ok': True})
+
+    # Valida valor
+    valor_mp = resposta.get("transaction_amount", 0)
+    pedido = pagamento.pedido
+    if not validar_valor_pagamento(pedido, valor_mp):
+        logger.error(f'Webhook: valor divergente | mp_id={payment_id} | valor_mp={valor_mp}')
+        return JsonResponse({'ok': True})
+
+    with transaction.atomic():
         pagamento.status = 'aprovado'
         pagamento.save()
         pedido.status = 'confirmado'
         pedido.save()
 
-        # Agrupa slots por quadra (servico) — cria 1 agendamento por quadra
+        slots_ordenados = pedido.slots.select_related('servico').order_by('servico', 'horario')
         from itertools import groupby
-        slots_ordenados = pedido.slots.all().order_by('servico', 'horario')
-
-        for servico_id, slots_do_servico in groupby(slots_ordenados, key=lambda s: s.servico_id):
-            slots_lista = list(slots_do_servico)
+        for servico_id, slots_grupo in groupby(slots_ordenados, key=lambda s: s.servico_id):
+            slots_lista = list(slots_grupo)
             slot_inicio = slots_lista[0]
             slot_fim = slots_lista[-1]
-
-            # Calcula horário de fim (último slot + 30min)
-            from datetime import datetime, timedelta
             horario_fim_dt = datetime.combine(slot_fim.data, slot_fim.horario) + timedelta(minutes=30)
-            horario_fim = horario_fim_dt.time()
 
-            Agendamento.objects.create(
+            Agendamento.objects.get_or_create(
                 tenant=slot_inicio.tenant,
                 cliente=pedido.cliente,
                 servico=slot_inicio.servico,
                 data=slot_inicio.data,
                 horario=slot_inicio.horario,
-                horario_fim=horario_fim,
-                status='pendente',
-                origem='cliente',
+                defaults={
+                    'horario_fim': horario_fim_dt.time(),
+                    'status': 'pendente',
+                    'origem': 'cliente',
+                }
             )
 
         pedido.slots.all().delete()
-        return JsonResponse({'status': 'aprovado'})
-# ─────────────────────────────────────────────────────────────────────────────
+        marcar_pagamento_processado(payment_id)
+
+    logger.info(f'Webhook processado | mp_id={payment_id} | pedido={pedido.id}')
+    return JsonResponse({'ok': True})

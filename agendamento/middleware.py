@@ -1,6 +1,26 @@
 from django.http import Http404
 from django.core.cache import cache
 from .models import Tenant
+import logging
+
+logger = logging.getLogger('seguranca')
+
+
+class SecurityHeadersMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        response['X-Content-Type-Options'] = 'nosniff'
+        response['X-Frame-Options'] = 'DENY'
+        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        if request.is_secure():
+            response['Strict-Transport-Security'] = (
+                'max-age=31536000; includeSubDomains; preload'
+            )
+        return response
 
 
 class TenantMiddleware:
@@ -17,7 +37,6 @@ class TenantMiddleware:
 
             request.tenant = tenant
 
-            # Import feito AQUI DENTRO, não no topo do arquivo
             from master.models import StatusSalao
             status_admin = StatusSalao.objects.filter(tenant=tenant).first()
 
@@ -36,7 +55,10 @@ class TenantMiddleware:
     def _extrair_slug(self, path):
         partes = path.strip('/').split('/')
         if partes and partes[0]:
-            ignorar = {'admin', 'static', 'media', 'cadastro', 'entrar', 'termos', 'privacidade', 'master', 'favicon.ico'}
+            ignorar = {
+                'admin', 'static', 'media', 'cadastro', 'entrar',
+                'termos', 'privacidade', 'master', 'favicon.ico', 'webhook',
+            }
             if partes[0] not in ignorar:
                 return partes[0]
         return None

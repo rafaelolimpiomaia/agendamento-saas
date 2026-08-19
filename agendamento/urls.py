@@ -49,4 +49,5 @@ urlpatterns = [
     path('pagamento/<int:pedido_id>/', views.finalizar_pagamento, name='finalizar_pagamento'),
     path('bloquear-intervalo/', views.bloquear_intervalo, name='bloquear_intervalo'),
     path('pagamento/<int:pedido_id>/status/', views.verificar_status_pagamento, name='verificar_status_pagamento'),
+    
     ]

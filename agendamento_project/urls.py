@@ -18,6 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 import agendamento.views_public as public_views
+from agendamento import views as agendamento_views
 
 urlpatterns = [
     path('', public_views.landing, name='landing'),
@@ -28,4 +29,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('master/', include('master.urls')),
     path('<slug:tenant_slug>/', include('agendamento.urls')),
+    path('webhook/mercadopago/', agendamento_views.webhook_mercadopago, name='webhook_mercadopago'),
 ]
+

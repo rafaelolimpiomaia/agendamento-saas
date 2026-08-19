@@ -33,3 +33,18 @@ Thumbs.db
 *.env
 !.env.example
 
+# Logs
+logs/
+*.log
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+venv/
+db.sqlite3
+staticfiles/
